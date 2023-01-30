@@ -6,15 +6,11 @@ services:
     environment:
       ACAPY_ADMIN_INSECURE_MODE: "true"
       ACAPY_AUTO_PROVISION: "true"
-      ACAPY_ENDPOINT: "http://agent-${JANUS_NAME}:${AGENT_PORT}"
-      ACAPY_WEBHOOK_URL: "http://webhook-server:1080/agent-${JANUS_NAME}"
+      ACAPY_ENDPOINT: "http://127.0.0.1:${AGENT_PORT}"
+      ACAPY_WEBHOOK_URL: "http://janus-webhook:1080/agent-${JANUS_NAME}"
       ACAPY_LABEL: "${JANUS_NAME}"
       ACAPY_LOG_LEVEL: "info"
       ACAPY_WALLET_TYPE: "basic"
-      # ACAPY_WALLET_NAME: "wallet${JANUS_NAME}"
-      # ACAPY_WALLET_KEY: "walletkey"
-      # ACAPY_GENESIS_URL: "http://dev.bcovrin.vonx.io/genesis"
-      # ACAPY_WALLET_SEED: "pNyNR5AFXQv4O49VShGCM7jaaaGXLghb"
 
     entrypoint: /bin/bash
     command: ["-c",
@@ -26,11 +22,10 @@ services:
     ]
     ports:
       - "${ADMIN_PORT}:${ADMIN_PORT}"
+    networks:
+      - my-proxy-net
 
-  webhook-server:
-    image: ghcr.io/timoglastra/acapy-development-webhook-server
-    container_name: webhook-${JANUS_NAME}
-    ports:
-      - ${WEBHOOK_PORT}:1080
-      # If using WSL you ill need to acess this throught the WSL network namve server. 
-      # Get this using `cat /etc/resolv.conf`
+networks:
+  my-proxy-net:
+    external:
+      name: janus-network
