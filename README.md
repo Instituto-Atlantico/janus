@@ -4,10 +4,23 @@
 
 To run the demos you will use [docker-compose](https://docs.docker.com/compose/gettingstarted/).
 
-You need to specify what env configuration file are you using and which docker-compose do you want to use (ledger or ledgerless):
+1. create docker janus-network
 
-``` shell
-docker compose --env-file ./demos/.env.holder  -f ./docker-compose.ledgerless.yml -p testingHolder up
+```
+./network-up.sh
 ```
 
-The flag -p refers to the project name and you must pass a unique value to it if you want to run two or more agents at the same time
+2. run issuer
+
+```
+docker compose --env-file ./demos/.env.issuer  -f ./docker-compose.ledger.yml -p issuer up
+```
+
+3. run holder
+
+```
+docker compose --env-file ./demos/.env.holder -f ./docker-compose.ledgerless.yml -p holder up
+```
+
+
+See [demo.md](./demo.md) to steps about the demo 
