@@ -6,7 +6,7 @@ services:
     environment:
       ACAPY_ADMIN_INSECURE_MODE: "true"
       ACAPY_AUTO_PROVISION: "true"
-      ACAPY_ENDPOINT: "http://127.0.0.1:${AGENT_PORT}"
+      ACAPY_ENDPOINT: "http://agent-${JANUS_NAME}:${AGENT_PORT}"
       ACAPY_WEBHOOK_URL: "http://janus-webhook:1080/agent-${JANUS_NAME}"
       ACAPY_LABEL: "${JANUS_NAME}"
       ACAPY_LOG_LEVEL: "info"
