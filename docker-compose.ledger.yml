@@ -14,7 +14,7 @@ services:
       ACAPY_LOG_LEVEL: "info"
       
       ACAPY_WALLET_TYPE: "indy"
-      ACAPY_WALLET_SEED: "pNyNR5AFXQv4O49VShGCM7jaaaGXLghb"
+      ACAPY_WALLET_SEED: "${WALLET_SEED}"
       ACAPY_WALLET_NAME: "wallet${JANUS_NAME}"
       ACAPY_WALLET_KEY: "walletkey"
 
