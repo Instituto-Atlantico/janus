@@ -19,8 +19,15 @@ For this we need two agents running, a issuer and a holder.
 7. On **issuer** create a schema and credential definition
 8. On **issuer** send a credential offer to **holder**
 9. On **holder** send a credential request to **issuer**
+10. Check on **holder** if credential record is have status "credential-received"
+11. On **holder** store the credential
 
+### presenting proofs
 
+12. On **issuer** send a presentation request to **holder**
+13. On **holder** send a presentation to issuer
+14. On **issuer** verify the presentation
+15. Check on **holder** if presentation state is "Done" 
 
 ## jsons
 
@@ -53,7 +60,7 @@ For this we need two agents running, a issuer and a holder.
 ``` json
 {
   "auto_remove": true,
-  "comment": "second try:D",
+  "comment": "credential definition",
   "connection_id": "111111111111",
   "credential_preview": {
     "@type": "issue-credential/2.0/credential-preview",
@@ -81,5 +88,65 @@ For this we need two agents running, a issuer and a holder.
     }
   },
   "trace": false
+}
+```
+
+### presentation request
+
+``` json
+{
+  "comment": "proof request",
+  "connection_id": "6516f63f-e9a2-4e9d-9ac4-178c18414cc2",
+  "presentation_request": {
+    "indy": {
+      "name": "Proof of Age",
+      "version": "1.0",
+      "requested_attributes": {
+        "name": {
+          "name": "name",
+          "restrictions": [
+            {
+              "cred_def_id": "NGvkVexvsWa4CgRy8v3jZC:3:CL:17926:default"
+            }
+          ]
+        }
+      },
+      "requested_predicates": {
+        "age": {
+          "name": "age",
+          "p_type": ">=",
+          "p_value": 18,
+          "restrictions": [
+            {
+              "cred_def_id": "NGvkVexvsWa4CgRy8v3jZC:3:CL:17926:default"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+### presentation
+
+``` json
+{
+  "indy": {
+    "requested_attributes": {
+      "name_proof": {
+        "cred_id": "be7ec290-229a-4d18-956b-43485d6f563d",
+        "revealed": true
+      }
+    },
+    "requested_predicates": {
+      "age_proof": {
+        "cred_id": "be7ec290-229a-4d18-956b-43485d6f563d"
+      }
+    },
+    "self_attested_attributes": {
+
+    }
+  }
 }
 ```
