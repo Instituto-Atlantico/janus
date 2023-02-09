@@ -1,4 +1,4 @@
-package helper
+package agent_deploy
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 )
 
 func InstatiateAgent(seed, name, adminPort, agentPort, endpoint string) error {
-	command := "docker compose -f ../docker-compose.yml up -d"
+	command := "docker compose -f ./docker-compose.yml up -d"
 	parsedCommand := parseCommand(command)
 
 	cmd := exec.Command(parsedCommand[0], parsedCommand[1:]...)
