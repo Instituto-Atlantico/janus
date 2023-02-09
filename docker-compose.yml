@@ -6,7 +6,7 @@ services:
 
     container_name: agent-${JANUS_NAME}
     environment:
-      ACAPY_ENDPOINT: "http://agent-${JANUS_NAME}:${AGENT_PORT}"
+      ACAPY_ENDPOINT: "${ENDPOINT}:${AGENT_PORT}"
       ACAPY_LABEL: "${JANUS_NAME}"
 
       ACAPY_ADMIN_INSECURE_MODE: "true"
