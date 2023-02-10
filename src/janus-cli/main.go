@@ -9,11 +9,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/Instituto-Atlantico/janus/janus-cli/cmd"
+	"github.com/Instituto-Atlantico/janus/src/janus-cli/cmd"
 )
 
 //this is copying
-//go:generate cp ../docker/docker-compose.yml ./
+//go:generate cp ../../docker/docker-compose.yml ./
 
 // this is embeding the docker-compose file to the binary code
 //
