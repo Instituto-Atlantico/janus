@@ -75,7 +75,7 @@ func deployAgent(agentName string, agentPort int) {
 	log.Printf("DiD registered: %s\n", did)
 
 	// Instatiate Agent
-	err = agent_deploy.InstatiateAgent(seed, agentName, strconv.Itoa(adminPort), strconv.Itoa(agentPort), endpoint)
+	err = agent_deploy.InstantiateAgent(seed, agentName, strconv.Itoa(adminPort), strconv.Itoa(agentPort), endpoint)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func InstatiateAgent(seed, name, adminPort, agentPort, endpoint string) error {
+func InstantiateAgent(seed, name, adminPort, agentPort, endpoint string) error {
 	command := "docker compose -f /tmp/janus/docker-compose.yml -p janus-agent up -d"
 	parsedCommand := parseCommand(command)
 
