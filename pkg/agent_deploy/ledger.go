@@ -23,7 +23,6 @@ type RegisterDIDResponse struct {
 
 func GenerateSeed() string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
 	length := 32
 
 	seededRand := rand.New(
@@ -49,6 +48,7 @@ func RegisterDID(seed, ledgerURL string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	resp, err := http.Post(ledgerURL+"/register", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
