@@ -1,4 +1,4 @@
 src/janus-cli/docker-compose.yml
-./docker/
-./vscode/
+.docker
+.vscode
 janus-cli
