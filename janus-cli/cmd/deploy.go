@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/Instituto-Atlantico/janus/agent_deploy"
+	"github.com/Instituto-Atlantico/janus/pkg/agent_deploy"
 
 	"github.com/spf13/cobra"
 )
