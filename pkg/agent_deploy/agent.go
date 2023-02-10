@@ -24,7 +24,6 @@ func InstatiateAgent(seed, name, adminPort, agentPort, endpoint string) error {
 
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
