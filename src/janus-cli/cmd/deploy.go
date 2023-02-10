@@ -5,6 +5,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/Instituto-Atlantico/janus/pkg/agent_deploy"
 
@@ -12,39 +14,35 @@ import (
 )
 
 var (
-	name string
+	name      string
+	agentPort int
 )
 
 // deployCmd represents the deploy command
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command.`,
+	Short: "Deploy an aca-py agent",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("deploy called:", name)
-		deployAgent()
+		deployAgent(name, int(agentPort))
 	},
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
+	//gets host name to use if argument --name hasn't been passed
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deployCmd.PersistentFlags().String("foo", "", "A help for foo")
+	deployCmd.Flags().StringVar(&name, "agent-name", hostname, "The aca-py agent name. This flag is optional, and will be filled with the host name if blank")
+	deployCmd.Flags().IntVar(&agentPort, "agent-port", 0, "The aca-py agent port. This flag is required and agent-port+1 will be used for aca-py admin page if its available")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	deployCmd.Flags().StringVar(&name, "name", "", "The aca-py agent name")
-
+	deployCmd.MarkFlagRequired("agent-port")
 	rootCmd.AddCommand(deployCmd)
 }
 
-func deployAgent() {
-	// init variables
-	ledger := "http://dev.bcovrin.vonx.io"
-
+func deployAgent(agentName string, agentPort int) {
 	// - Discover IP
 	ip, err := agent_deploy.GetOutboundIP()
 	if err != nil {
@@ -54,11 +52,10 @@ func deployAgent() {
 	endpoint := fmt.Sprintf("http://%s", ip.String())
 	fmt.Printf("Actual IP: %s\n", endpoint)
 
-	// - Provision Port // needs to be done manually because it needs to be open in firewall
-	agentPort := "8000"
-	adminPort := "8001"
+	// - Set Ports
+	adminPort := agentPort + 1
 
-	fmt.Printf("Admin port: %s\nAgent port: %s\n", adminPort, agentPort)
+	fmt.Printf("Agent port: %v Admin port: %v\n", agentPort, adminPort)
 
 	// - Generate seed
 	seed := agent_deploy.GenerateSeed()
@@ -66,7 +63,7 @@ func deployAgent() {
 	fmt.Printf("Seed generated: %s\n", seed)
 
 	// - Register DID
-	did, err := agent_deploy.RegisterDID(seed, ledger)
+	did, err := agent_deploy.RegisterDID(seed, "http://dev.bcovrin.vonx.io")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -74,7 +71,7 @@ func deployAgent() {
 	fmt.Printf("DiD registered: %s\n", did)
 
 	// - Instatiate Agent
-	err = agent_deploy.InstatiateAgent(seed, "vitor", adminPort, agentPort, ip.String())
+	err = agent_deploy.InstatiateAgent(seed, agentName, strconv.Itoa(adminPort), strconv.Itoa(agentPort), endpoint)
 
 	if err != nil {
 		fmt.Println(err)
