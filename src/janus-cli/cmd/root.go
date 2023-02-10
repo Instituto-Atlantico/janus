@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
+// RootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "janus-cli",
 	Short: "Janus-cli is an interface for usign janus, an aca-py agent manager for IoT devices",

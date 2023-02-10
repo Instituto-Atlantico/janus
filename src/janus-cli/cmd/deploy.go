@@ -16,7 +16,7 @@ var (
 	agentPort int
 )
 
-// deployCmd represents the deploy command
+// DeployCmd represents the deploy command
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy an aca-py agent",
@@ -27,7 +27,7 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
-	//gets host name to use if argument --name hasn't been passed
+	// Gets host name to use if argument --name hasn't been passed
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Fatal(err)
@@ -51,22 +51,22 @@ func getIP() (string, error) {
 }
 
 func deployAgent(agentName string, agentPort int) {
-	// - Set adminPort
+	// Set adminPort
 	adminPort := agentPort + 1
 	log.Printf("Agent port: %v Admin port: %v\n", agentPort, adminPort)
 
-	// - Discover IP
+	// Discover IP
 	endpoint, err := getIP()
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("Actual IP: %s\n", endpoint)
 
-	// - Generate seed
+	// Generate seed
 	seed := agent_deploy.GenerateSeed()
 	log.Printf("Seed generated: %s\n", seed)
 
-	// - Register DID
+	// Register DID
 	did, err := agent_deploy.RegisterDID(seed, "http://dev.bcovrin.vonx.io")
 	if err != nil {
 		log.Fatal(err)
@@ -74,7 +74,7 @@ func deployAgent(agentName string, agentPort int) {
 
 	log.Printf("DiD registered: %s\n", did)
 
-	// - Instatiate Agent
+	// Instatiate Agent
 	err = agent_deploy.InstatiateAgent(seed, agentName, strconv.Itoa(adminPort), strconv.Itoa(agentPort), endpoint)
 	if err != nil {
 		log.Fatal(err)

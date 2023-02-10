@@ -18,7 +18,7 @@ func GetOutboundIP() (net.IP, error) {
 	return localAddr.IP, nil
 }
 
-// parseCommand parses a string command to a slice filled with every single part of it.
+// Parses a string command to a slice filled with every single part of it.
 func parseCommand(command string) []string {
 	parsed := strings.Split(command, " ")
 	return parsed
