@@ -7,7 +7,7 @@ import (
 )
 
 func InstantiateAgent(seed, name, adminPort, agentPort, endpoint string) error {
-	command := "docker compose -f /tmp/janus/docker-compose.yml -p janus-agent up -d"
+	command := fmt.Sprintf("docker compose -f /tmp/janus/docker-compose.yml -p janus-agent-%s up -d", name)
 	parsedCommand := parseCommand(command)
 
 	cmd := exec.Command(parsedCommand[0], parsedCommand[1:]...)
