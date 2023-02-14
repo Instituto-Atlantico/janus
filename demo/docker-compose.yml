@@ -18,7 +18,7 @@ services:
       ACAPY_WALLET_SEED: "${WALLET_SEED}"
       ACAPY_WALLET_NAME: "wallet${AGENT_NAME}"
       ACAPY_WALLET_KEY: "walletkey"
-      ACAPY_WEBHOOK_URL: "${ENDPOINT}:1080/"
+      #ACAPY_WEBHOOK_URL: "${ENDPOINT}:1080/"
 
     entrypoint: /bin/bash
     command:
