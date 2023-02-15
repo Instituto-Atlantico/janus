@@ -11,8 +11,8 @@ import (
 
 func main() {
 	//issuer creates an invitation
-	issuer := acapy.NewClient("http://192.168.228.89:8002/")
-	holder := acapy.NewClient("http://192.168.228.89:9002/")
+	issuer := acapy.NewClient("http://192.168.182.51:8002/")
+	holder := acapy.NewClient("http://192.168.182.51:9002/")
 
 	fmt.Println("Create Invitation")
 	invitation, err := issuer.CreateInvitation("createdByCodeTest", true, false, false)
@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(invitation.ConnectionID)
+	// fmt.Println(invitation.ConnectionID)
 
 	//holder receive the invitation
 	parsedInvitation, _ := json.Marshal(invitation.Invitation)
@@ -36,7 +36,7 @@ func main() {
 	}
 	_ = connection
 
-	fmt.Println(connection)
+	// fmt.Println(connection)
 
 	//issuer register a schema
 	schemaName := fmt.Sprintf("schema-elton-%v", time.Now().Unix())
@@ -47,7 +47,7 @@ func main() {
 		log.Default().Println(err)
 	}
 
-	fmt.Println(schema.ID)
+	// fmt.Println(schema.ID)
 
 	time.Sleep(1 * time.Second)
 
@@ -58,7 +58,7 @@ func main() {
 		log.Default().Println(err)
 	}
 
-	fmt.Println(credentialDefinition)
+	// fmt.Println(credentialDefinition)
 
 	// get public DID
 	fmt.Println("Issuer DID")
@@ -67,7 +67,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(issuerDID.DID)
+	_ = issuerDID
+	// fmt.Println(issuerDID.DID)
 
 	// issuer issues a credential
 	attributes := []acapy.CredentialPreviewAttributeV2{
@@ -91,7 +92,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(offerCredential)
+	_ = offerCredential
+
+	// fmt.Println(offerCredential)
 
 	// holder sends a presentation
 	requestedPredicates := map[string]acapy.RequestedPredicate{
@@ -145,22 +148,65 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(sendPresentation)
+	// fmt.Println(sendPresentation)
 
 	// Query presentation ID
 	fmt.Println("Query presentation ID")
 	param := acapy.QueryPresentationExchangeParams{
-		//ConnectionID: connection.ConnectionID,
+		ConnectionID: connection.ConnectionID,
 	}
 
-	presentation, err := holder.QueryPresentationExchange(param)
+	time.Sleep(1 * time.Second)
+
+	presentations, err := holder.QueryPresentationExchange(param)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(presentation)
+
+	//Query Credential ID
+
+	fmt.Println("Query credentials")
+	credentials, err := holder.GetCredentials(1, 0, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(credentials[0])
 
 	// holder send presentation
-	//holder.SendPresentationByID()
+	attributesProof := map[string]acapy.PresentationProofAttribute{
+		"name": {
+			CredentialID: credentials[0].Referent,
+			Revealed:     true,
+		},
+	}
+
+	predicatesProof := map[string]acapy.PresentationProofPredicate{
+		"age": {
+			CredentialID: credentials[0].Referent,
+		},
+	}
+
+	proof := acapy.PresentationProof{
+		SelfAttestedAttributes: map[string]string{},
+		RequestedAttributes:    attributesProof,
+		RequestedPredicates:    predicatesProof,
+	}
+
+	fmt.Println("sending presentation")
+	_, err = holder.SendPresentationByID(presentations[0].PresentationExchangeID, proof)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	time.Sleep(1 * time.Second)
 
 	// issuer verifies
+	fmt.Println("verifying presentation🙏")
+	resp, err := issuer.VerifyPresentationByID(sendPresentation.PresentationExchangeID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	parsed, _ := json.Marshal(resp)
+	fmt.Println(string(parsed))
 }
