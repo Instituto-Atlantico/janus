@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
-	"os"
+	"net"
 	"strconv"
+	"strings"
 
 	"github.com/Instituto-Atlantico/janus/pkg/agent_deploy"
 
@@ -12,8 +13,12 @@ import (
 )
 
 var (
-	name      string
+	agentName string
 	agentPort int
+
+	hostName string
+
+	localIp net.IP
 )
 
 // DeployCmd represents the deploy command
@@ -22,60 +27,72 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy an aca-py agent",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		deployAgent(name, int(agentPort))
+
+		if hostName != "" {
+			valid := agent_deploy.ValidateSSHHostName(hostName)
+			if !valid {
+				log.Fatal("hostname flag must be on user@ip format")
+			}
+		}
+
+		deployAgent()
 	},
 }
 
 func init() {
-	// Gets host name to use if argument --name hasn't been passed
-	hostname, err := os.Hostname()
+	var err error
+
+	localIp, err = agent_deploy.GetOutboundIP()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	deployCmd.Flags().StringVar(&name, "agent-name", hostname, "The aca-py agent name. This flag is optional, and will be filled with the host name if blank")
-	deployCmd.Flags().IntVar(&agentPort, "agent-port", 0, "The aca-py agent port. This flag is required and agent-port+1 will be used for aca-py admin page if its available")
+	deployCmd.Flags().StringVarP(&hostName, "host-name", "H", "", "The hostname of the target host you want to deploy the agent. The required format is user@ip.")
+	deployCmd.Flags().StringVar(&agentName, "agent-name", "", "The aca-py agent name. This flag is optional but recommended so the agent will be better named")
+	deployCmd.Flags().IntVar(&agentPort, "agent-port", 0, "The aca-py agent port. This flag is required and agent-port+1 will be used for aca-py admin page")
+
 	deployCmd.MarkFlagRequired("agent-port")
+	deployCmd.MarkFlagRequired("host-name")
 
 	rootCmd.AddCommand(deployCmd)
 }
 
-func getIP() (string, error) {
-	ip, err := agent_deploy.GetOutboundIP()
-	if err != nil {
-		return "", err
+func deployAgent() {
+	agent := agent_deploy.AgentInfo{
+		Name:      agentName,
+		AdminPort: strconv.Itoa(agentPort + 1),
+		AgentPort: strconv.Itoa(agentPort),
 	}
-
-	formattedIP := fmt.Sprintf("http://%s", ip.String())
-	return formattedIP, nil
-}
-
-func deployAgent(agentName string, agentPort int) {
-	// Set adminPort
-	adminPort := agentPort + 1
-	log.Printf("Agent port: %v Admin port: %v\n", agentPort, adminPort)
-
-	// Discover IP
-	endpoint, err := getIP()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Actual IP: %s\n", endpoint)
 
 	// Generate seed
-	seed := agent_deploy.GenerateSeed()
-	log.Printf("Seed generated: %s\n", seed)
+	agent.Seed = agent_deploy.GenerateSeed()
+	log.Printf("Seed generated: %s\n", agent.Seed)
 
 	// Register DID
-	did, err := agent_deploy.RegisterDID(seed, "http://dev.bcovrin.vonx.io")
+	did, err := agent_deploy.RegisterDID(agent.Seed, "http://dev.bcovrin.vonx.io")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("DiD registered: %s\n", did)
 
+	// Define endpoint
+	if hostName != "" {
+		agent.Endpoint = strings.Split(hostName, "@")[1]
+	} else {
+		agent.Endpoint = localIp.String()
+	}
+
+	// log results
+	parsedAgent, err := json.Marshal(agent)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Deploying agent: %s\n", parsedAgent)
+
 	// Instantiate Agent
-	err = agent_deploy.InstantiateAgent(seed, agentName, strconv.Itoa(adminPort), strconv.Itoa(agentPort), endpoint)
+	err = agent_deploy.InstantiateAgent(agent, hostName)
 	if err != nil {
 		log.Fatal(err)
 	}

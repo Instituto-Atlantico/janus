@@ -2,6 +2,7 @@ package agent_deploy
 
 import (
 	"net"
+	"regexp"
 	"strings"
 )
 
@@ -16,6 +17,12 @@ func GetOutboundIP() (net.IP, error) {
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 
 	return localAddr.IP, nil
+}
+
+// ValidateSSHHostName uses regex to validate the format user@hostname for ssh connections
+func ValidateSSHHostName(hostName string) bool {
+	re := regexp.MustCompile("(?i)[A-Za-z]+@[A-Za-z]+")
+	return re.MatchString(hostName)
 }
 
 // Parses a string command to a slice filled with every single part of it.
