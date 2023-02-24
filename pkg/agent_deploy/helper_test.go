@@ -16,6 +16,14 @@ func TestValidateSSHHostName(t *testing.T) {
 		assert.True(t, valid)
 	})
 
+	t.Run("should pass if hostname has an IP number", func(t *testing.T) {
+		hostname := "host@192.168.0.3"
+
+		valid := ValidateSSHHostName(hostname)
+
+		assert.True(t, valid)
+	})
+
 	t.Run("should not pass if hostname is broken", func(t *testing.T) {
 		hostname := "host @ hostname"
 

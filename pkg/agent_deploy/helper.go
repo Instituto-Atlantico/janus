@@ -21,7 +21,7 @@ func GetOutboundIP() (net.IP, error) {
 
 // ValidateSSHHostName uses regex to validate the format user@hostname for ssh connections
 func ValidateSSHHostName(hostName string) bool {
-	re := regexp.MustCompile("(?i)[A-Za-z]+@[A-Za-z]+")
+	re := regexp.MustCompile("(?i)[A-Za-z]+@[A-Za-z-z0-9]+")
 	return re.MatchString(hostName)
 }
 
