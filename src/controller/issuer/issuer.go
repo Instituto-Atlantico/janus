@@ -27,7 +27,6 @@ func CreateInvitation(alias string, autoAccept bool, multiUse bool, public bool)
 func RegisterSchema(name string, version string, attributes []string) (acapy.Schema, error) {
 	//schemaName := fmt.Sprintf("schema-elton-%v", time.Now().Unix())
 
-	fmt.Println("Register Schema")
 	schema, err := issuer.RegisterSchema(name, version, attributes)
 	if err != nil {
 		log.Default().Println(err)
@@ -57,7 +56,7 @@ func OfferCredentialV2(connectionID, credentialDefinition, comment string) (acap
 		{
 			MimeType: "text/plain",
 			Name:     "age",
-			Value:    "12",
+			Value:    "22",
 		},
 	}
 
@@ -140,7 +139,7 @@ func VerifyPresentationByID(sendPresentation acapy.PresentationExchangeRecord) (
 }
 
 // issuer query presentation ID
-func GetPresentationExchangeByID(sendPresentation acapy.PresentationExchangeRecord) ([]byte, error) {
+func GetPresentationExchangeByID(sendPresentation acapy.PresentationExchangeRecord) (string, error) {
 	presentationByID, err := issuer.GetPresentationExchangeByID(sendPresentation.PresentationExchangeID)
 	if err != nil {
 		log.Fatal(err)
@@ -148,5 +147,8 @@ func GetPresentationExchangeByID(sendPresentation acapy.PresentationExchangeReco
 
 	getPresentationExchangeParsed, _ := json.Marshal(presentationByID.State)
 
-	return getPresentationExchangeParsed, err
+	stringParsed := string(getPresentationExchangeParsed)
+	//fmt.Println(string(getPresentationExchangeParsed))
+
+	return stringParsed, err
 }

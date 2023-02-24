@@ -2,7 +2,6 @@ package holder
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/ldej/go-acapy-client"
@@ -43,7 +42,6 @@ func SendPresentationByID(connection acapy.Connection) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(credentials[0])
 
 	attributesProof := map[string]acapy.PresentationProofAttribute{
 		"name": {

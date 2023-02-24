@@ -16,7 +16,7 @@ func main() {
 	connection, _ := holder.ReceiveInvitation(invitation, true)
 
 	fmt.Println("RegisterSchema")
-	schema, _ := issuer.RegisterSchema("schemaName2402_01", "0.1", []string{"name", "age"})
+	schema, _ := issuer.RegisterSchema("schema-2132554", "0.1", []string{"name", "age"})
 
 	fmt.Println("CreateCredentialDefinition")
 	credDefinition, _ := issuer.CreateCredentialDefinition("default", false, 0, schema.ID)
@@ -30,13 +30,14 @@ func main() {
 	presentationRequest, _ := issuer.PresentationRequestRequest(credDefinition, invitation)
 
 	fmt.Println("SendPresentationByID")
+	//time.Sleep(3 * time.Second)
 	holder.SendPresentationByID(connection)
 
 	fmt.Println("VerifyPresentationByID")
+	time.Sleep(3 * time.Second)
 	issuer.VerifyPresentationByID(presentationRequest)
 
 	fmt.Println("GetPresentationExchangeByID")
-	resp, _ := issuer.GetPresentationExchangeByID(presentationRequest)
-	fmt.Println(resp)
-
+	proofValidation, _ := issuer.GetPresentationExchangeByID(presentationRequest)
+	fmt.Println(proofValidation)
 }
