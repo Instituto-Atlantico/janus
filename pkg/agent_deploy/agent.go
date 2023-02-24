@@ -27,8 +27,6 @@ func InstantiateAgent(agent AgentInfo, hostName string) error {
 
 	parsedCommand := parseCommand(command)
 
-	fmt.Println(command)
-
 	cmd := exec.Command(parsedCommand[0], parsedCommand[1:]...)
 
 	cmd.Env = os.Environ()
