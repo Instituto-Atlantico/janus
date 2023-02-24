@@ -1,3 +1,5 @@
+github.com/Instituto-Atlantico/go-acapy-client v0.1.0 h1:RGunh3+jMZbvBeieUkX4LjUwOgMvnWKg9KsYrEz4tFg=
+github.com/Instituto-Atlantico/go-acapy-client v0.1.0/go.mod h1:faJXWBL9AHuvGPfj3N/AV65GZW13iu4YFkHHdn+Ghos=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/inconshreveable/mousetrap v1.0.1 h1:U3uMjPSQEBMNp1lFxmllqCPM6P5u/Xq7Pgzkat/bFNc=
 github.com/inconshreveable/mousetrap v1.0.1/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
