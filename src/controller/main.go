@@ -2,42 +2,122 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Instituto-Atlantico/janus/src/controller/holder"
 	"github.com/Instituto-Atlantico/janus/src/controller/issuer"
+	"github.com/ldej/go-acapy-client"
+)
+
+func LogHelloForVerifiedDevices(presentation any) {
+
+}
+
+var (
+	validAttributes = []acapy.CredentialPreviewAttributeV2{
+		{
+			MimeType: "text/plain",
+			Name:     "name",
+			Value:    "Vitor",
+		},
+		{
+			MimeType: "text/plain",
+			Name:     "age",
+			Value:    "20",
+		},
+	}
+
+	invalidAttributes = []acapy.CredentialPreviewAttributeV2{
+		{
+			MimeType: "text/plain",
+			Name:     "name",
+			Value:    "Vitor",
+		},
+		{
+			MimeType: "text/plain",
+			Name:     "age",
+			Value:    "10",
+		},
+	}
 )
 
 func main() {
-	fmt.Println("CreateInvitation")
-	invitation, _ := issuer.CreateInvitation("createdByCodeTestWFunc", true, false, false)
+	// Invitations
 
-	fmt.Println("ReceiveInvitation")
-	connection, _ := holder.ReceiveInvitation(invitation, true)
+	fmt.Println("\nGetting connections and making invitations")
 
-	fmt.Println("RegisterSchema")
-	schema, _ := issuer.RegisterSchema("schema-2132554", "0.1", []string{"name", "age"})
+	issuerConnection, err := issuer.GetConnection()
+	if err != nil && err.Error() == "empty" {
+		invitation, _ := issuer.CreateInvitation("createdByCode", true, false, false)
+		holder.ReceiveInvitation(invitation, true)
+		time.Sleep(1 * time.Second)
 
-	fmt.Println("CreateCredentialDefinition")
-	credDefinition, _ := issuer.CreateCredentialDefinition("default", false, 0, schema.ID)
+		issuerConnection, _ = issuer.GetConnection()
+	}
 
-	time.Sleep(2 * time.Second)
+	holderConnection, _ := holder.GetConnection()
+	fmt.Println("issuer connection: ", issuerConnection.ConnectionID)
+	fmt.Println("holder connection: ", holderConnection.ConnectionID)
 
-	fmt.Println("OfferCredentialV2")
-	issuer.OfferCredentialV2(invitation.ConnectionID, credDefinition, "first comment bellow")
+	fmt.Println("\nGetting and Registering schemas and cred defs")
 
-	fmt.Println("PresentationRequestRequest")
-	presentationRequest, _ := issuer.PresentationRequestRequest(credDefinition, invitation)
+	schema, err := issuer.GetSchema("schema-elton-4")
+	if err != nil && err.Error() == "empty" {
+		resp, _ := issuer.RegisterSchema("schema-elton-4", "0.1", []string{"name", "age"})
 
-	fmt.Println("SendPresentationByID")
-	//time.Sleep(3 * time.Second)
-	holder.SendPresentationByID(connection)
+		schema = resp.ID
+	}
 
-	fmt.Println("VerifyPresentationByID")
+	credDef, err := issuer.GetCredDef(schema)
+	if err != nil && err.Error() == "empty" {
+		credDef, _ = issuer.CreateCredentialDefinition("default", false, 0, schema)
+	}
+
+	fmt.Println("Schema ID: ", schema)
+	fmt.Println("Cred Def ID: ", credDef)
+
 	time.Sleep(3 * time.Second)
-	issuer.VerifyPresentationByID(presentationRequest)
 
-	fmt.Println("GetPresentationExchangeByID")
-	proofValidation, _ := issuer.GetPresentationExchangeByID(presentationRequest)
-	fmt.Println(proofValidation)
+	fmt.Println("\nIssuing Credentials")
+
+	goodCred, err := holder.GetCredential("age", "20")
+	if err != nil && err.Error() == "empty" {
+		issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "good credential", validAttributes)
+
+		time.Sleep(3 * time.Second)
+		goodCred, _ = holder.GetCredential("age", "20")
+	}
+
+	badCred, err := holder.GetCredential("age", "10")
+	if err != nil && err.Error() == "empty" {
+		issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "bad credential", invalidAttributes)
+
+		time.Sleep(1 * time.Second)
+		badCred, _ = holder.GetCredential("age", "10")
+	}
+
+	fmt.Println("Good cred: ", goodCred.Referent)
+	fmt.Println("Bad cred: ", badCred.Referent)
+
+	// good presentation
+
+	fmt.Println("\nAsking for presentation (good)")
+
+	presentationIssuer, _ := issuer.PresentationRequestRequest(credDef, issuerConnection)
+
+	time.Sleep(1 * time.Second)
+
+	holder.SendPresentationByID(presentationIssuer.ThreadID, badCred)
+
+	time.Sleep(1 * time.Second)
+
+	_, err = issuer.VerifyPresentationByID(presentationIssuer)
+	if err != nil {
+		log.Fatal("verification failed: ", err)
+	}
+
+	proofValidation, _ := issuer.GetPresentationExchangeByID(presentationIssuer)
+
+	fmt.Println(string(proofValidation))
 }

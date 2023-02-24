@@ -2,12 +2,40 @@ package holder
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/ldej/go-acapy-client"
 )
 
-var holder = acapy.NewClient("http://172.24.188.202:9002/")
+var holder = acapy.NewClient("http://172.26.51.196:9002/")
+
+func GetConnection() (acapy.Connection, error) {
+	conns, err := holder.QueryConnections(&acapy.QueryConnectionsParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(conns) == 0 {
+		return acapy.Connection{}, errors.New("empty")
+	}
+
+	return conns[0], nil
+}
+
+func GetCredential(attr, value string) (acapy.Credential, error) {
+	query := fmt.Sprintf(`{"attr::%s::value": "%s"}`, attr, value)
+
+	credentials, err := holder.GetCredentials(1, 0, query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(credentials) == 0 {
+		return acapy.Credential{}, errors.New("empty")
+	}
+
+	return credentials[0], nil
+}
 
 // holder receive the invitation
 func ReceiveInvitation(invitation acapy.CreateInvitationResponse, autoAccept bool) (acapy.Connection, error) {
@@ -26,10 +54,10 @@ func ReceiveInvitation(invitation acapy.CreateInvitationResponse, autoAccept boo
 }
 
 // holder send presentation
-func SendPresentationByID(connection acapy.Connection) error {
+func SendPresentationByID(threadID string, credential acapy.Credential) error {
 	//query presentation ID
 	param := acapy.QueryPresentationExchangeParams{
-		ConnectionID: connection.ConnectionID,
+		ThreadID: threadID,
 	}
 
 	presentations, err := holder.QueryPresentationExchange(param)
@@ -37,22 +65,16 @@ func SendPresentationByID(connection acapy.Connection) error {
 		log.Fatal(err)
 	}
 
-	// query Credential ID
-	credentials, err := holder.GetCredentials(1, 0, "")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	attributesProof := map[string]acapy.PresentationProofAttribute{
 		"name": {
-			CredentialID: credentials[0].Referent,
+			CredentialID: credential.Referent,
 			Revealed:     true,
 		},
 	}
 
 	predicatesProof := map[string]acapy.PresentationProofPredicate{
 		"age": {
-			CredentialID: credentials[0].Referent,
+			CredentialID: credential.Referent,
 		},
 	}
 

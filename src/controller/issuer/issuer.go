@@ -2,6 +2,7 @@ package issuer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -9,12 +10,46 @@ import (
 	"github.com/ldej/go-acapy-client"
 )
 
-var issuer = acapy.NewClient("http://172.24.188.202:8002/")
+var issuer = acapy.NewClient("http://172.26.51.196:8002/")
+
+func GetSchema(schemaName string) (string, error) {
+	schemas, err := issuer.QuerySchemas(acapy.QuerySchemasParams{SchemaName: schemaName})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(schemas) == 0 {
+		return "", errors.New("empty")
+	}
+
+	return schemas[0], nil
+}
+
+func GetCredDef(schemaID string) (string, error) {
+	credDefs, err := issuer.QueryCredentialDefinitions(acapy.QueryCredentialDefinitionsParams{SchemaID: schemaID})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(credDefs) == 0 {
+		return "", errors.New("empty")
+	}
+
+	return credDefs[0], nil
+}
+
+func GetConnection() (acapy.Connection, error) {
+	conns, err := issuer.QueryConnections(&acapy.QueryConnectionsParams{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(conns) == 0 {
+		return acapy.Connection{}, errors.New("empty")
+	}
+
+	return conns[0], nil
+}
 
 // issuer creates an invitation
 func CreateInvitation(alias string, autoAccept bool, multiUse bool, public bool) (acapy.CreateInvitationResponse, error) {
-	fmt.Println("Create Invitation")
-
 	invitation, err := issuer.CreateInvitation(alias, autoAccept, multiUse, public)
 	if err != nil {
 		log.Fatal(err)
@@ -46,23 +81,10 @@ func CreateCredentialDefinition(tag string, supportRevocation bool, revocationRe
 }
 
 // issuer issues a credential
-func OfferCredentialV2(connectionID, credentialDefinition, comment string) (acapy.CredentialExchangeRecordResult, error) {
-	attributes := []acapy.CredentialPreviewAttributeV2{
-		{
-			MimeType: "text/plain",
-			Name:     "name",
-			Value:    "Elton",
-		},
-		{
-			MimeType: "text/plain",
-			Name:     "age",
-			Value:    "22",
-		},
-	}
-
+func OfferCredentialV2(connectionID, credentialDefinition, comment string, attributes []acapy.CredentialPreviewAttributeV2) (acapy.CredentialExchangeRecordResult, error) {
 	credentialPreview := acapy.NewCredentialPreviewV2(attributes)
 
-	offerCredential, err := issuer.OfferCredentialV2(connectionID, credentialPreview, credentialDefinition, "first comment bellow")
+	offerCredential, err := issuer.OfferCredentialV2(connectionID, credentialPreview, credentialDefinition, comment)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +93,7 @@ func OfferCredentialV2(connectionID, credentialDefinition, comment string) (acap
 }
 
 // issuer sends a presentation
-func PresentationRequestRequest(credentialDefinition string, invitation acapy.CreateInvitationResponse) (acapy.PresentationExchangeRecord, error) {
+func PresentationRequestRequest(credentialDefinition string, invitation acapy.Connection) (acapy.PresentationExchangeRecord, error) {
 	requestedPredicates := map[string]acapy.RequestedPredicate{
 		"age": acapy.RequestedPredicate{
 			Restrictions: []acapy.Restrictions{{ // Required in case of Names
@@ -145,10 +167,9 @@ func GetPresentationExchangeByID(sendPresentation acapy.PresentationExchangeReco
 		log.Fatal(err)
 	}
 
-	getPresentationExchangeParsed, _ := json.Marshal(presentationByID.State)
+	getPresentationExchangeParsed, _ := json.Marshal(presentationByID)
 
 	stringParsed := string(getPresentationExchangeParsed)
-	//fmt.Println(string(getPresentationExchangeParsed))
 
 	return stringParsed, err
 }
