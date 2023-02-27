@@ -127,6 +127,6 @@ func LogMessageIfPresentationIsValid(threadID, message string) {
 	if presentation.Verified == "true" {
 		fmt.Println("Message from holder: ", message) //this can be changed for other behaviors
 	} else {
-		log.Fatal("Presentation validation failed")
+		log.Fatal("Presentation validation failed.")
 	}
 }
