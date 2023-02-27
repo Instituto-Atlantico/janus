@@ -9,7 +9,7 @@ import (
 	"github.com/ldej/go-acapy-client"
 )
 
-var holder = acapy.NewClient("http://172.26.51.196:9002/")
+var holder = acapy.NewClient("http://172.26.61.250:9002/")
 
 func GetConnection() (acapy.Connection, error) {
 	conns, err := holder.QueryConnections(&acapy.QueryConnectionsParams{})

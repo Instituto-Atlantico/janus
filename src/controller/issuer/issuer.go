@@ -10,7 +10,7 @@ import (
 	"github.com/ldej/go-acapy-client"
 )
 
-var issuer = acapy.NewClient("http://172.26.51.196:8002/")
+var issuer = acapy.NewClient("http://172.26.61.250:8002/")
 
 func GetSchema(schemaName string) (string, error) {
 	schemas, err := issuer.QuerySchemas(acapy.QuerySchemasParams{SchemaName: schemaName})
@@ -172,4 +172,14 @@ func GetPresentationExchangeByID(sendPresentation acapy.PresentationExchangeReco
 	stringParsed := string(getPresentationExchangeParsed)
 
 	return stringParsed, err
+}
+
+func GetPresentationExchangeByThreadId(id string) (acapy.PresentationExchangeRecord, error) {
+	presentations, _ := issuer.QueryPresentationExchange(acapy.QueryPresentationExchangeParams{ThreadID: id, State: "verified"})
+
+	if len(presentations) == 0 {
+		return acapy.PresentationExchangeRecord{}, errors.New("no verified presentation found")
+	}
+
+	return presentations[0], nil
 }

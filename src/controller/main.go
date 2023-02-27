@@ -62,9 +62,9 @@ func main() {
 
 	fmt.Println("\nGetting and Registering schemas and cred defs")
 
-	schema, err := issuer.GetSchema("schema-elton-4")
+	schema, err := issuer.GetSchema("schema-elton-5")
 	if err != nil && err.Error() == "empty" {
-		resp, _ := issuer.RegisterSchema("schema-elton-4", "0.1", []string{"name", "age"})
+		resp, _ := issuer.RegisterSchema("schema-elton-5", "0.1", []string{"name", "age"})
 
 		schema = resp.ID
 	}
@@ -100,15 +100,13 @@ func main() {
 	fmt.Println("Good cred: ", goodCred.Referent)
 	fmt.Println("Bad cred: ", badCred.Referent)
 
-	// good presentation
-
 	fmt.Println("\nAsking for presentation (good)")
 
 	presentationIssuer, _ := issuer.PresentationRequestRequest(credDef, issuerConnection)
 
 	time.Sleep(1 * time.Second)
 
-	holder.SendPresentationByID(presentationIssuer.ThreadID, badCred)
+	holder.SendPresentationByID(presentationIssuer.ThreadID, goodCred)
 
 	time.Sleep(1 * time.Second)
 
@@ -117,7 +115,18 @@ func main() {
 		log.Fatal("verification failed: ", err)
 	}
 
-	proofValidation, _ := issuer.GetPresentationExchangeByID(presentationIssuer)
+	LogMessageIfPresentationIsValid(presentationIssuer.ThreadID, "hello world")
+}
 
-	fmt.Println(string(proofValidation))
+func LogMessageIfPresentationIsValid(threadID, message string) {
+	presentation, err := issuer.GetPresentationExchangeByThreadId(threadID)
+	if err != nil {
+		log.Fatal("Presentation validation failed, ", err)
+	}
+
+	if presentation.Verified == "true" {
+		fmt.Println("Message from holder: ", message) //this can be changed for other behaviors
+	} else {
+		log.Fatal("Presentation validation failed")
+	}
 }
