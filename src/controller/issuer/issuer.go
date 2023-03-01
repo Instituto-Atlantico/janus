@@ -10,7 +10,7 @@ import (
 	"github.com/ldej/go-acapy-client"
 )
 
-var issuer = acapy.NewClient("http://172.26.61.250:8002/")
+var issuer = acapy.NewClient("http://localhost:8002/")
 
 func GetSchema(schemaName string) (string, error) {
 	schemas, err := issuer.QuerySchemas(acapy.QuerySchemasParams{SchemaName: schemaName})

@@ -51,7 +51,7 @@ func main() {
 	if err != nil && err.Error() == "empty" {
 		invitation, _ := issuer.CreateInvitation("createdByCode", true, false, false)
 		holder.ReceiveInvitation(invitation, true)
-		time.Sleep(1 * time.Second)
+		time.Sleep(5 * time.Second)
 
 		issuerConnection, _ = issuer.GetConnection()
 	}
@@ -62,9 +62,9 @@ func main() {
 
 	fmt.Println("\nGetting and Registering schemas and cred defs")
 
-	schema, err := issuer.GetSchema("schema-elton-5")
+	schema, err := issuer.GetSchema("schema-janus-0104")
 	if err != nil && err.Error() == "empty" {
-		resp, _ := issuer.RegisterSchema("schema-elton-5", "0.1", []string{"name", "age"})
+		resp, _ := issuer.RegisterSchema("schema-janus-0104", "0.1", []string{"name", "age"})
 
 		schema = resp.ID
 	}
@@ -85,7 +85,7 @@ func main() {
 	if err != nil && err.Error() == "empty" {
 		issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "good credential", validAttributes)
 
-		time.Sleep(3 * time.Second)
+		time.Sleep(10 * time.Second)
 		goodCred, _ = holder.GetCredential("age", "20")
 	}
 
@@ -93,7 +93,7 @@ func main() {
 	if err != nil && err.Error() == "empty" {
 		issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "bad credential", invalidAttributes)
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Second)
 		badCred, _ = holder.GetCredential("age", "10")
 	}
 
@@ -106,7 +106,7 @@ func main() {
 
 	time.Sleep(1 * time.Second)
 
-	holder.SendPresentationByID(presentationIssuer.ThreadID, goodCred)
+	holder.SendPresentationByID(presentationIssuer.ThreadID, badCred)
 
 	time.Sleep(1 * time.Second)
 
