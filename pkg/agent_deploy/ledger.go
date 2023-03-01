@@ -3,6 +3,7 @@ package agent_deploy
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -60,4 +61,16 @@ func RegisterDID(seed, ledgerURL string) (string, error) {
 	}
 
 	return response.DID, err
+}
+
+func ProvideDid() (seed, did string) {
+	seed = GenerateSeed()
+
+	// Register DID
+	did, err := RegisterDID(seed, "http://dev.bcovrin.vonx.io")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return
 }
