@@ -10,10 +10,6 @@ import (
 	"github.com/ldej/go-acapy-client"
 )
 
-func LogHelloForVerifiedDevices(presentation any) {
-
-}
-
 var (
 	validAttributes = []acapy.CredentialPreviewAttributeV2{
 		{
@@ -42,9 +38,15 @@ var (
 	}
 )
 
+// 9RgfwfrRcTjESbVVGaSQa:2:schema-janus-0104:0.1
 func main() {
-	// Invitations
+	//schemas and cred defs
+	fmt.Println("Schema attributes: ", issuer.GetSchemaAttributes("9RgfwfrRcTjESbVVGaSQa:2:schema-janus-0104:0.1"))
 
+	credDef := "9RgfwfrRcTjESbVVGaSQa:3:CL:18988:default"
+	fmt.Println("Cred Def ID: ", credDef)
+
+	// Invitations
 	fmt.Println("\nGetting connections and making invitations")
 
 	issuerConnection, err := issuer.GetConnection()
@@ -60,25 +62,7 @@ func main() {
 	fmt.Println("issuer connection: ", issuerConnection.ConnectionID)
 	fmt.Println("holder connection: ", holderConnection.ConnectionID)
 
-	fmt.Println("\nGetting and Registering schemas and cred defs")
-
-	schema, err := issuer.GetSchema("schema-janus-0104")
-	if err != nil && err.Error() == "empty" {
-		resp, _ := issuer.RegisterSchema("schema-janus-0104", "0.1", []string{"name", "age"})
-
-		schema = resp.ID
-	}
-
-	credDef, err := issuer.GetCredDef(schema)
-	if err != nil && err.Error() == "empty" {
-		credDef, _ = issuer.CreateCredentialDefinition("default", false, 0, schema)
-	}
-
-	fmt.Println("Schema ID: ", schema)
-	fmt.Println("Cred Def ID: ", credDef)
-
-	time.Sleep(3 * time.Second)
-
+	// issuing credentials
 	fmt.Println("\nIssuing Credentials")
 
 	goodCred, err := holder.GetCredential("age", "20")
@@ -103,6 +87,23 @@ func main() {
 	fmt.Println("\nAsking for presentation (good)")
 
 	presentationIssuer, _ := issuer.PresentationRequestRequest(credDef, issuerConnection)
+
+	time.Sleep(1 * time.Second)
+
+	holder.SendPresentationByID(presentationIssuer.ThreadID, goodCred)
+
+	time.Sleep(1 * time.Second)
+
+	_, err = issuer.VerifyPresentationByID(presentationIssuer)
+	if err != nil {
+		log.Fatal("verification failed: ", err)
+	}
+
+	LogMessageIfPresentationIsValid(presentationIssuer.ThreadID, "hello world")
+
+	fmt.Println("\nAsking for presentation (bad)")
+
+	presentationIssuer, _ = issuer.PresentationRequestRequest(credDef, issuerConnection)
 
 	time.Sleep(1 * time.Second)
 

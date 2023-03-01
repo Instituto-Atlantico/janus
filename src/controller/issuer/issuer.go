@@ -60,14 +60,18 @@ func CreateInvitation(alias string, autoAccept bool, multiUse bool, public bool)
 
 // issuer register a schema
 func RegisterSchema(name string, version string, attributes []string) (acapy.Schema, error) {
-	//schemaName := fmt.Sprintf("schema-elton-%v", time.Now().Unix())
-
 	schema, err := issuer.RegisterSchema(name, version, attributes)
 	if err != nil {
 		log.Default().Println(err)
 	}
 
 	return schema, err
+}
+
+func GetSchemaAttributes(id string) []string {
+	schema, _ := issuer.GetSchema(id)
+
+	return schema.AttributeNames
 }
 
 // issuer creates a credential definition
