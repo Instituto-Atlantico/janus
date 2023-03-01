@@ -40,7 +40,7 @@ func RegisterDID(seed, ledgerURL string) (string, error) {
 	request := registerDIDRequest{
 		Alias: "",
 		Seed:  seed,
-		Role:  "",
+		Role:  "ENDORSER",
 	}
 
 	var response RegisterDIDResponse
