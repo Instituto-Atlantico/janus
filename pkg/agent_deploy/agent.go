@@ -22,8 +22,14 @@ func InstantiateAgent(agent AgentInfo, hostName string) error {
 		command += fmt.Sprintf("-H ssh://%s ", hostName)
 	}
 
+	projectName := "janus-agent"
+
+	if agent.Name != "" {
+		projectName += fmt.Sprintf("-%s", agent.Name)
+	}
+
 	// append the rest of the command
-	command += "compose -f /tmp/janus/docker-compose.yml -p janus-agent up -d"
+	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml -p %s up -d", projectName)
 
 	parsedCommand := parseCommand(command)
 
