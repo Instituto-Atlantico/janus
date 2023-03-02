@@ -37,7 +37,7 @@ func GetCredDef(schemaID string) (string, error) {
 }
 
 func GetConnection() (acapy.Connection, error) {
-	conns, err := issuer.QueryConnections(&acapy.QueryConnectionsParams{})
+	conns, err := issuer.QueryConnections(&acapy.QueryConnectionsParams{State: "active"})
 	if err != nil {
 		log.Fatal(err)
 	}

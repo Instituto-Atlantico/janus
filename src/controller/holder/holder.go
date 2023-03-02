@@ -12,7 +12,7 @@ import (
 var holder = acapy.NewClient("http://raspberrypi.local:8002/")
 
 func GetConnection() (acapy.Connection, error) {
-	conns, err := holder.QueryConnections(&acapy.QueryConnectionsParams{})
+	conns, err := holder.QueryConnections(&acapy.QueryConnectionsParams{State: "active"})
 	if err != nil {
 		log.Fatal(err)
 	}
