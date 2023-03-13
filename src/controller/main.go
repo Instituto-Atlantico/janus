@@ -144,6 +144,8 @@ func main() {
 
 	LogMessageIfPresentationIsValid(presentationIssuer.ThreadID, "hello world")
 
+	time.Sleep(1 * time.Second)
+
 	fmt.Println("\nAsking for presentation (bad)")
 	presentationIssuer, _ = issuer.PresentationRequestRequest(credDef, issuerConnection)
 
