@@ -18,7 +18,6 @@ services:
       ACAPY_WALLET_SEED: "${WALLET_SEED}"
       ACAPY_WALLET_NAME: "wallet${AGENT_NAME}"
       ACAPY_WALLET_KEY: "walletkey"
-      #ACAPY_WEBHOOK_URL: "${ENDPOINT}:1080/"
 
     entrypoint: /bin/bash
     command:
@@ -41,3 +40,18 @@ services:
     ports:
       - "${ADMIN_PORT}:${ADMIN_PORT}"
       - "${AGENT_PORT}:${AGENT_PORT}"
+    profiles:
+      - unknow
+
+  # amd64:
+  #   image: tonistiigi/binfmt
+  #   command: install amd64
+  #   profiles:
+  #     - rasp
+
+  temp_collector:
+    image: elazzar/rpi-dht11-api-docker
+    ports: 
+      - 5000:5000
+    profiles:
+      - rasp
