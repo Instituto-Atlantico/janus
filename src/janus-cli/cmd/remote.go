@@ -65,7 +65,7 @@ func deployAgentRemotely() {
 	log.Printf("Deploying agent: %s\n", parsedAgent)
 
 	// Instantiate Agent
-	err = agent_deploy.InstantiateAgent(agent, hostName)
+	err = agent_deploy.InstantiateAgent(agent, hostName, "raspberry")
 	if err != nil {
 		log.Fatal(err)
 	}

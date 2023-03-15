@@ -62,7 +62,7 @@ func deployAgentLocally() {
 	log.Printf("Deploying agent: %s\n", parsedAgent)
 
 	// Instantiate Agent
-	err = agent_deploy.InstantiateAgent(agent, "")
+	err = agent_deploy.InstantiateAgent(agent, "", "server")
 	if err != nil {
 		log.Fatal(err)
 	}

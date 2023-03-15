@@ -18,7 +18,6 @@ services:
       ACAPY_WALLET_SEED: "${WALLET_SEED}"
       ACAPY_WALLET_NAME: "wallet${AGENT_NAME}"
       ACAPY_WALLET_KEY: "walletkey"
-      #ACAPY_WEBHOOK_URL: "${ENDPOINT}:1080/"
 
     entrypoint: /bin/bash
     command:
@@ -35,9 +34,28 @@ services:
         --auto-respond-credential-offer
         --auto-respond-credential-request
         --auto-store-credential
-        --auto-respond-presentation-proposal
-        # --auto-respond-presentation-request"
+        --auto-respond-presentation-proposal"
       ]
     ports:
       - "${ADMIN_PORT}:${ADMIN_PORT}"
       - "${AGENT_PORT}:${AGENT_PORT}"
+    depends_on: #required while image doesnt support arm architecture
+      - amd64_emulator
+    profiles:
+      - raspberry
+      - server
+
+  amd64_emulator:
+    image: tonistiigi/binfmt
+    privileged: true
+    command: "--install amd64"  
+    profiles:
+      - raspberry
+
+  temp_collector:
+    image: allthingscloud/rpi3-python-iot-api-dht
+    privileged: true
+    ports: 
+      - 8989:8989
+    profiles:
+      - raspberry
