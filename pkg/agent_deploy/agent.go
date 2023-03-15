@@ -29,8 +29,9 @@ func InstantiateAgent(agent AgentInfo, hostName string) error {
 	}
 
 	// append the rest of the command
-	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml -p %s up -d", projectName)
+	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile raspberry -p %s up -d", projectName)
 
+	fmt.Println(command)
 	parsedCommand := parseCommand(command)
 
 	cmd := exec.Command(parsedCommand[0], parsedCommand[1:]...)

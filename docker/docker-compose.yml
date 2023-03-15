@@ -34,24 +34,27 @@ services:
         --auto-respond-credential-offer
         --auto-respond-credential-request
         --auto-store-credential
-        --auto-respond-presentation-proposal
-        # --auto-respond-presentation-request"
+        --auto-respond-presentation-proposal"
       ]
     ports:
       - "${ADMIN_PORT}:${ADMIN_PORT}"
       - "${AGENT_PORT}:${AGENT_PORT}"
+    depends_on: #required while image doesnt support arm architecture
+      - amd64_emulator
     profiles:
-      - unknow
+      - raspberry
+      - server
 
-  # amd64:
-  #   image: tonistiigi/binfmt
-  #   command: install amd64
-  #   profiles:
-  #     - rasp
+  amd64_emulator:
+    image: tonistiigi/binfmt
+    privileged: true
+    command: "--install amd64"  
+    profiles:
+      - raspberry
 
   temp_collector:
     image: elazzar/rpi-dht11-api-docker
     ports: 
       - 5000:5000
     profiles:
-      - rasp
+      - raspberry
