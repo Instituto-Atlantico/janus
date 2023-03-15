@@ -14,7 +14,7 @@ type AgentInfo struct {
 	AgentPort string
 }
 
-func InstantiateAgent(agent AgentInfo, hostName string) error {
+func InstantiateAgent(agent AgentInfo, hostName, profile string) error {
 	command := "docker "
 
 	// add -H host name if remote deploying
@@ -29,7 +29,7 @@ func InstantiateAgent(agent AgentInfo, hostName string) error {
 	}
 
 	// append the rest of the command
-	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile raspberry -p %s up -d", projectName)
+	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p %s up -d", profile, projectName)
 
 	fmt.Println(command)
 	parsedCommand := parseCommand(command)
