@@ -53,9 +53,9 @@ services:
       - raspberry
 
   temp_collector:
-    image: allthingscloud/rpi3-python-iot-api-dht
+    image: elazzar/rpi-dht11-api-docker
     privileged: true
     ports: 
-      - 8989:8989
+      - 5000:5000
     profiles:
       - raspberry
