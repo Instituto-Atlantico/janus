@@ -18,7 +18,7 @@ sequenceDiagram
 
     participant user
     participant dojot
-    participant janus as janus-controler
+    participant janus as janus-controller
     participant server as server-agent
     participant rasp as rasp-agent
 
@@ -34,7 +34,7 @@ sequenceDiagram
     janus ->>+ server: Ask for invitation
     server -->>- janus: Done
 
-    janus ->>+ rasp: Ask for invitation acception
+    janus ->>+ rasp: Ask for invitation accepting
     rasp -->>- janus: Done
 
     janus ->> janus: Get device permissions
@@ -56,19 +56,25 @@ sequenceDiagram
     title: Sensor measurement 
     autonumber
 
-    participant janus as janus-controler
+    participant janus as janus-controller
     participant server as server-agent
     participant rasp as rasp-agent
 
     loop for each x minutes
-        janus ->>+ server: Ask for device presentation-proof
-        server ->> rasp: Request presentation-proof
-        rasp ->> rasp: Create presentation proof with credential
-        rasp ->> server: Send Presentation Proof
-        server -->>- janus: Done
 
         janus ->>+ rasp: Collect sensor data
         rasp -->>- janus: returns sensor data
+        note over rasp: {"humidity":20.2,"temperature": 32.0, "smoke":false}
+
+
+        janus ->> janus: get the sensor types received
+        loop for each sensor type
+            janus ->>+ server: Ask for device presentation-proof with the received sensor types
+            server ->> rasp: Request presentation-proof
+            rasp ->> rasp: Create presentation proof with credential
+            rasp ->> server: Send Presentation Proof
+            server -->>- janus: Done
+        end
 
         janus ->> dojot: Send sensor data
     end

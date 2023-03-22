@@ -24,7 +24,7 @@ go build ./src/janus-cli
 Having an ssh key par configured and already passed as authorized_keys on remote device is required. Need help with this? Click [here](https://phoenixnap.com/kb/ssh-with-key).
 
 ```
-./janus-cli deploy remote  --agent-port 8001 --agent-name demo -H user@192.168.0.2
+./janus-cli deploy remote --agent-port 8001 --agent-name demo -H user@192.168.0.2
 ```
 
 the aries agent will be available at port 8001 and the admin page at 8002
@@ -42,3 +42,7 @@ If you want to have a communication between local and remote devices you need to
 ```
 ./janus-cli deploy local --agent-port 8001 --agent-name demo --agent-ip 192.168.0.1
 ```
+
+## Features docs
+
+Read more about the proposed features [here](./docs/readme.md)
