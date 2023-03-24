@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Instituto-Atlantico/janus/pkg/agent_deploy"
+	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +26,7 @@ var remoteCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		valid := agent_deploy.ValidateSSHHostName(hostName)
+		valid := helper.ValidateSSHHostName(hostName)
 		if !valid {
 			log.Fatal("hostname flag must be on user@ip format")
 		}

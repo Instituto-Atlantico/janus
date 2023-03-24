@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/Instituto-Atlantico/janus/pkg/agent_deploy"
+	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +31,7 @@ var localCmd = &cobra.Command{
 func init() {
 	deployCmd.AddCommand(localCmd)
 
-	localIp, err := agent_deploy.GetOutboundIP()
+	localIp, err := helper.GetOutboundIP()
 	if err != nil {
 		log.Fatal(err)
 	}
