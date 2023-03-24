@@ -77,5 +77,6 @@ func (s *Service) RunApi(port string) {
 		fmt.Fprint(w, reflect.ValueOf(s.Agents).MapKeys())
 	})
 
+	log.Println("Server listening on port ", port)
 	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
