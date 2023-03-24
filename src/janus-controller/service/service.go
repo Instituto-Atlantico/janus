@@ -28,12 +28,12 @@ type Service struct {
 
 func (s *Service) Init() {
 	//add deploy only if no agent is running
-	err := local.DeployAgent("192.168.0.4")
+	err := local.DeployAgent("192.168.0.10")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.4:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.10:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
@@ -69,7 +69,7 @@ func (s *Service) RunApi(port string) {
 		}
 
 		//deploy agent
-		// add deploy only if no agent is running
+		//add deploy only if no agent is running
 		err = remote.DeployAgent(provisionBody)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -86,8 +86,8 @@ func (s *Service) RunApi(port string) {
 			helper.TryUntilNoError(device.Client.Status, 600) //check if agent is already up and running
 			log.Println("Changing invitation")
 
-			invitation, _, _ := agents.ChangeInvitations(s.ServerClient, device.Client)
-			device.ConnectionID = invitation.ID
+			invitationID, _, _ := agents.ChangeInvitations(s.ServerClient, device.Client)
+			device.ConnectionID = invitationID
 
 			fmt.Println(device)
 

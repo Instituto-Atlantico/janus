@@ -18,23 +18,23 @@ func parseInvitation(invitation any) acapy.Invitation {
 	return invitationTyped
 }
 
-func ChangeInvitations(issuer, holder *acapy.Client) (acapy.Invitation, acapy.Connection, error) {
-	invitation, err := issuer.CreateInvitation("createdByCode", true, false, false)
+func ChangeInvitations(issuer, holder *acapy.Client) (string, string, error) {
+	invitationResponse, err := issuer.CreateInvitation("createdByCode", true, false, false)
 	if err != nil {
 		log.Println(err)
-		return acapy.Invitation{}, acapy.Connection{}, err
+		return "", "", err
 	}
 
-	parsedInvitation := parseInvitation(invitation.Invitation)
+	parsedInvitation := parseInvitation(invitationResponse.Invitation)
 
 	time.Sleep(time.Second)
 	connection, err := holder.ReceiveInvitation(parsedInvitation, true)
 	if err != nil {
 		log.Println(err)
-		return acapy.Invitation{}, connection, err
+		return "", "", err
 	}
 
-	return parsedInvitation, connection, nil
+	return invitationResponse.ConnectionID, connection.ConnectionID, nil
 }
 
 func CreateCredDef(issuer *acapy.Client, schemaId string) (string, error) {
@@ -47,7 +47,7 @@ func CreateCredDef(issuer *acapy.Client, schemaId string) (string, error) {
 	return credentialDefinition, nil
 }
 
-func issuerCredential(issuer *acapy.Client, credentialDefinition string, connectionId string, attribute []acapy.CredentialPreviewAttributeV2) error {
+func IssueCredential(issuer *acapy.Client, credentialDefinition string, connectionId string, attribute []acapy.CredentialPreviewAttributeV2) error {
 	credentialPreview := acapy.NewCredentialPreviewV2(attribute)
 
 	_, err := issuer.OfferCredentialV2(connectionId, credentialPreview, credentialDefinition, "Janus Credential")
