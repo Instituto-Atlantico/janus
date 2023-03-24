@@ -15,20 +15,37 @@ import (
 	"github.com/ldej/go-acapy-client"
 )
 
+type Device struct {
+	Client       *acapy.Client
+	ConnectionID string
+}
+
 type Service struct {
-	ServerClient *acapy.Client
-	Agents       map[string]*acapy.Client
+	ServerClient     *acapy.Client
+	Agents           map[string]*Device
+	CredDefinitionId string
 }
 
 func (s *Service) Init() {
 	//add deploy only if no agent is running
-	err := local.DeployAgent("192.168.0.10")
+	err := local.DeployAgent("192.168.0.4")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.10:8002")
-	s.Agents = make(map[string]*acapy.Client)
+	s.ServerClient = acapy.NewClient("http://192.168.0.4:8002")
+
+	helper.TryUntilNoError(s.ServerClient.Status, 600)
+
+	// create cred definition
+	s.CredDefinitionId, err = agents.CreateCredDef(s.ServerClient, "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("CredDefinitionID", s.CredDefinitionId)
+
+	s.Agents = make(map[string]*Device)
 }
 
 func (s *Service) RunApi(port string) {
@@ -60,13 +77,21 @@ func (s *Service) RunApi(port string) {
 			return
 		}
 
+		device := Device{}
+
 		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
-		s.Agents[ip] = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
+		device.Client = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
 
 		go func() {
-			helper.TryUntilNoError(s.Agents[ip].Status, 600) //check if agent is already up and running
+			helper.TryUntilNoError(device.Client.Status, 600) //check if agent is already up and running
 			log.Println("Changing invitation")
-			agents.ChangeInvitations(s.ServerClient, s.Agents[ip])
+
+			invitation, _, _ := agents.ChangeInvitations(s.ServerClient, device.Client)
+			device.ConnectionID = invitation.ID
+
+			fmt.Println(device)
+
+			s.Agents[ip] = &device
 		}()
 
 		b, _ := json.Marshal(provisionBody)
