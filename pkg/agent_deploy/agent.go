@@ -32,7 +32,7 @@ func InstantiateAgent(agent AgentInfo, hostName, profile string) error {
 	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p %s up -d", profile, projectName)
 
 	fmt.Println(command)
-	parsedCommand := parseCommand(command)
+	parsedCommand := helper.parseCommand(command)
 
 	cmd := exec.Command(parsedCommand[0], parsedCommand[1:]...)
 
