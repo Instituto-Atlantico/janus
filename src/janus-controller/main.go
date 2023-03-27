@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Instituto-Atlantico/janus/pkg/temp_files"
-	"github.com/Instituto-Atlantico/janus/src/janus-cli/cmd"
+	"github.com/Instituto-Atlantico/janus/src/janus-controller/service"
 )
 
 // This is copying the docker-compose file to the cli directory
@@ -22,5 +22,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cmd.Execute()
+	service := service.Service{}
+	service.Init()
+
+	service.RunApi("8080")
 }

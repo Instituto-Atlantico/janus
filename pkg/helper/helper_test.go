@@ -1,4 +1,4 @@
-package agent_deploy
+package helper
 
 import (
 	"testing"

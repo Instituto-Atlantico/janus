@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/Instituto-Atlantico/janus/pkg/helper"
 )
 
 type AgentInfo struct {
@@ -32,7 +34,7 @@ func InstantiateAgent(agent AgentInfo, hostName, profile string) error {
 	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p %s up -d", profile, projectName)
 
 	fmt.Println(command)
-	parsedCommand := parseCommand(command)
+	parsedCommand := helper.ParseCommand(command)
 
 	cmd := exec.Command(parsedCommand[0], parsedCommand[1:]...)
 
