@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/Instituto-Atlantico/janus/pkg/agents"
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
@@ -28,12 +29,12 @@ type Service struct {
 
 func (s *Service) Init() {
 	//add deploy only if no agent is running
-	err := local.DeployAgent("192.168.0.10")
+	err := local.DeployAgent("192.168.0.3")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.10:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.3:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
@@ -77,6 +78,20 @@ func (s *Service) RunApi(port string) {
 			return
 		}
 
+		permissionList := make([]acapy.CredentialPreviewAttributeV2, 0)
+
+		for _, sensorType := range provisionBody.Permissions {
+			permission := acapy.CredentialPreviewAttributeV2{
+				MimeType: "text/plain",
+				Name:     sensorType,
+				Value:    "1",
+			}
+
+			permissionList = append(permissionList, permission)
+		}
+
+		fmt.Println(permissionList)
+
 		device := Device{}
 
 		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
@@ -92,6 +107,10 @@ func (s *Service) RunApi(port string) {
 			fmt.Println(device)
 
 			s.Agents[ip] = &device
+
+			time.Sleep(2 * time.Second)
+
+			agents.IssueCredential(s.ServerClient, s.CredDefinitionId, device.ConnectionID, permissionList)
 		}()
 
 		b, _ := json.Marshal(provisionBody)
