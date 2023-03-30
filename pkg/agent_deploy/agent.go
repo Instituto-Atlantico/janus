@@ -24,7 +24,7 @@ func InstantiateAgent(agent AgentInfo, hostName, profile string, allowRedeploy b
 		command += fmt.Sprintf("-H ssh://%s ", hostName)
 	}
 
-	projectName := "janus-agent"
+	projectName := "janus"
 
 	if agent.Name != "" {
 		projectName += fmt.Sprintf("-%s", agent.Name)

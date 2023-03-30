@@ -12,7 +12,7 @@ import (
 func DeployAgent(ip string) error {
 	// Instantiate Agent
 	agent := agent_deploy.AgentInfo{
-		Name:      "janus-issuer",
+		Name:      "issuer",
 		AdminPort: strconv.Itoa(8002),
 		AgentPort: strconv.Itoa(8001),
 		Endpoint:  fmt.Sprintf("http://%s", ip),

@@ -4,7 +4,7 @@ services:
   agent:
     image: bcgovimages/aries-cloudagent:py36-1.16-1_1.0.0-rc1
 
-    container_name: aca-py-agent-${AGENT_NAME}
+    container_name: aca-py-${AGENT_NAME}
     environment:
       ACAPY_ENDPOINT: "${ENDPOINT}:${AGENT_PORT}"
       ACAPY_LABEL: "${AGENT_NAME}"
@@ -46,6 +46,7 @@ services:
       - server
 
   amd64_emulator:
+    container_name: amd64
     image: tonistiigi/binfmt
     privileged: true
     command: "--install amd64"  
@@ -53,6 +54,7 @@ services:
       - raspberry
 
   temp_collector:
+    container_name: temp_collector
     image: elazzar/rpi-dht11-api-docker
     privileged: true
     ports: 
