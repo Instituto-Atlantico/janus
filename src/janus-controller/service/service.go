@@ -28,12 +28,12 @@ type Service struct {
 }
 
 func (s *Service) Init() {
-	err := local.DeployAgent("192.168.0.3")
+	err := local.DeployAgent("192.168.0.10")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.3:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.10:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 

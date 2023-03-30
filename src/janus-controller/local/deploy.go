@@ -34,7 +34,7 @@ func DeployAgent(ip string) error {
 	log.Printf("Deploying agent: %s\n", parsedAgent)
 
 	// Instantiate Agent
-	err = agent_deploy.InstantiateAgent(agent, "", "server")
+	err = agent_deploy.InstantiateAgent(agent, "", "server", false)
 	if err != nil {
 		return err
 	}

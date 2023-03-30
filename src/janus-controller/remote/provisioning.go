@@ -49,7 +49,7 @@ func DeployAgent(provisionBody ProvisionBody) error {
 	log.Printf("Deploying agent: %s\n", parsedAgent)
 
 	// Instantiate Agent
-	go agent_deploy.InstantiateAgent(agent, provisionBody.DeviceHostName, "raspberry")
+	go agent_deploy.InstantiateAgent(agent, provisionBody.DeviceHostName, "raspberry", false)
 
 	return nil
 }
