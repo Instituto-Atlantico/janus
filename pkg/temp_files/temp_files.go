@@ -3,15 +3,16 @@ package temp_files
 import (
 	"errors"
 	"os"
+	"path/filepath"
 )
 
 func GenerateTempFiles(dockercompose string) error {
-	path := "/tmp/janus/"
+	path := filepath.Join("/", "tmp", "janus")
 
 	// Generate janus path on tmp
 	_, err := os.Stat(path)
 	if errors.Is(err, os.ErrNotExist) { // Check if path already exists
-		err := os.Mkdir(path, os.ModePerm) // Create path
+		err := os.MkdirAll(path, os.ModePerm) // Create path
 		if err != nil {
 			return err
 		}
@@ -21,7 +22,8 @@ func GenerateTempFiles(dockercompose string) error {
 
 	// Store docker-compose file in tmp/janus.
 	// Dockercompose variable is a string with the full body of our docker-compose.yml
-	err = os.WriteFile("/tmp/janus/docker-compose.yml", []byte(dockercompose), 0644)
+	filepath := filepath.Join("/", "tmp", "janus", "docker-compose.yml")
+	err = os.WriteFile(filepath, []byte(dockercompose), 0644)
 	if err != nil {
 		return err
 	}
