@@ -27,7 +27,7 @@ func ProvisionBodyIsValid(body ProvisionBody) bool {
 func DeployAgent(provisionBody ProvisionBody) error {
 	// Instantiate Agent
 	agent := agent_deploy.AgentInfo{
-		Name:      "rasp-holder",
+		Name:      "holder",
 		AdminPort: strconv.Itoa(8002),
 		AgentPort: strconv.Itoa(8001),
 		Endpoint:  fmt.Sprintf("http://%s", strings.Split(provisionBody.DeviceHostName, "@")[1]),
@@ -49,7 +49,7 @@ func DeployAgent(provisionBody ProvisionBody) error {
 	log.Printf("Deploying agent: %s\n", parsedAgent)
 
 	// Instantiate Agent
-	go agent_deploy.InstantiateAgent(agent, provisionBody.DeviceHostName, "raspberry")
+	go agent_deploy.InstantiateAgent(agent, provisionBody.DeviceHostName, "raspberry", false)
 
 	return nil
 }

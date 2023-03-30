@@ -28,13 +28,12 @@ type Service struct {
 }
 
 func (s *Service) Init() {
-	//add deploy only if no agent is running
-	err := local.DeployAgent("192.168.0.3")
+	err := local.DeployAgent("192.168.0.10")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.3:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.10:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
@@ -70,7 +69,6 @@ func (s *Service) RunApi(port string) {
 		}
 
 		//deploy agent
-		//add deploy only if no agent is running
 		err = remote.DeployAgent(provisionBody)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -122,5 +120,8 @@ func (s *Service) RunApi(port string) {
 	})
 
 	log.Println("Server listening on port ", port)
-	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	if err != nil {
+		log.Println(err)
+	}
 }

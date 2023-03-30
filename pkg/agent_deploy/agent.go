@@ -16,7 +16,7 @@ type AgentInfo struct {
 	AgentPort string
 }
 
-func InstantiateAgent(agent AgentInfo, hostName, profile string) error {
+func InstantiateAgent(agent AgentInfo, hostName, profile string, allowRedeploy bool) error {
 	command := "docker "
 
 	// add -H host name if remote deploying
@@ -24,7 +24,7 @@ func InstantiateAgent(agent AgentInfo, hostName, profile string) error {
 		command += fmt.Sprintf("-H ssh://%s ", hostName)
 	}
 
-	projectName := "janus-agent"
+	projectName := "janus"
 
 	if agent.Name != "" {
 		projectName += fmt.Sprintf("-%s", agent.Name)
@@ -32,6 +32,10 @@ func InstantiateAgent(agent AgentInfo, hostName, profile string) error {
 
 	// append the rest of the command
 	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p %s up -d", profile, projectName)
+
+	if !allowRedeploy {
+		command += " --no-recreate"
+	}
 
 	fmt.Println(command)
 	parsedCommand := helper.ParseCommand(command)
