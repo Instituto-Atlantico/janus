@@ -2,6 +2,29 @@
 
 Janus provides a way to deploy and manage Aries agents on Iot Devices Through a CLI and Aca-py agents.
 
+## Technologies
+
+Main technologies used in Ubuntu desktop
+
+- [Go](https://go.dev/doc/install)
+- [Docker](https://docs.docker.com/engine/install/ubuntu)
+- [Docker Compose](https://docs.docker.com/compose/install/linux)
+
+Main technologies used in Raspberry Pi 3/4
+- Raspberry Pi OS (64 bit)
+- Docker
+
+Hint with commands to install
+
+```
+sudo apt update
+sudo apt upgrade
+sudo apt install raspberrypi-kernel raspberrypi-kernel-headers
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker <device-user>
+sudo reboot
+```
+
 ## How to clone this repository
 
 ```bash
