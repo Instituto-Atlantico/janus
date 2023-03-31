@@ -79,10 +79,10 @@ If you want to have a communication between local and remote devices you need to
 ./bin/janus-cli_linux_amd64 deploy local --agent-port <port-number> --agent-name <agent-name> --agent-ip <agent-ip>
 ```
 
-## How to run the CLI in other operating systems
+## How to use the CLI in other operating systems
 
-To run in Windows check [here](./docs/windows.md) the doc.
+To use in Windows check [here](./docs/windows.md) the doc.
 
-To run in Apple check [here](./docs/apple.md) the doc.
+To use in macOS check [here](./docs/apple.md) the doc.
 
 Read more about the proposed features [here](./docs/readme.md)

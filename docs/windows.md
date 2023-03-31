@@ -1,4 +1,4 @@
-## How to use the CLI in Windows
+## How to use CLI in Windows environment
 
 Having an ssh key par configured and already passed as authorized_keys on remote device is required. Need help with this? Click [here](https://phoenixnap.com/kb/ssh-with-key).
 
