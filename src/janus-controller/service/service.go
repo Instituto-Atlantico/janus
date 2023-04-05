@@ -11,6 +11,7 @@ import (
 
 	"github.com/Instituto-Atlantico/janus/pkg/agents"
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
+	"github.com/Instituto-Atlantico/janus/pkg/sensors"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/local"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/remote"
 	"github.com/ldej/go-acapy-client"
@@ -28,12 +29,12 @@ type Service struct {
 }
 
 func (s *Service) Init() {
-	err := local.DeployAgent("192.168.0.10")
+	err := local.DeployAgent("192.168.0.12")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.10:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.12:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
@@ -46,6 +47,23 @@ func (s *Service) Init() {
 	log.Println("CredDefinitionID", s.CredDefinitionId)
 
 	s.Agents = make(map[string]*Device)
+}
+
+func (s *Service) RunCollector(timeoutInSeconds int) {
+	ticker := time.NewTicker(time.Duration(timeoutInSeconds) * time.Second)
+
+	go func() {
+		for range ticker.C {
+			ips := reflect.ValueOf(s.Agents).MapKeys()
+			if len(ips) > 0 {
+				fmt.Println("Getting sensors data")
+				agentIP := ips[0]
+
+				sensors.CollectSensorData(agentIP.String(), "5000")
+			}
+
+		}
+	}()
 }
 
 func (s *Service) RunApi(port string) {
