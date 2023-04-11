@@ -59,7 +59,19 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 				fmt.Println("Getting sensors data")
 				agentIP := ips[0]
 
-				sensors.CollectSensorData(agentIP.String(), "5000")
+				sensorData := sensors.CollectSensorData(agentIP.String(), "5000")
+
+				validatedData := make(map[string]any)
+
+				for name, value := range sensorData {
+					fmt.Printf("Sensor [%s] has Value [%s]\n", name, value)
+
+					// request presentation proof for name
+
+					// if presentation is valid store value
+
+					validatedData[name] = value
+				}
 			}
 
 		}
