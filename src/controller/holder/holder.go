@@ -9,7 +9,7 @@ import (
 	"github.com/ldej/go-acapy-client"
 )
 
-var holder = acapy.NewClient("http://raspberrypi.local:8002/")
+var holder = acapy.NewClient("http://raspberrypi:8002/")
 
 func GetConnection() (acapy.Connection, error) {
 	conns, err := holder.QueryConnections(&acapy.QueryConnectionsParams{State: "active"})
@@ -24,7 +24,7 @@ func GetConnection() (acapy.Connection, error) {
 }
 
 func GetCredential(attr, value string) (acapy.Credential, error) {
-	query := fmt.Sprintf(`{"attr::%s::value": "%s"}`, attr, value)
+	query := fmt.Sprintf(`{"%s":"%s"}`, attr, value)
 
 	credentials, err := holder.GetCredentials(1, 0, query)
 	if err != nil {
@@ -53,35 +53,39 @@ func ReceiveInvitation(invitation acapy.CreateInvitationResponse, autoAccept boo
 	return connection, err
 }
 
-// holder send presentation
-func SendPresentationByID(threadID string, credential acapy.Credential) error {
-	//query presentation ID
-	param := acapy.QueryPresentationExchangeParams{
-		ThreadID: threadID,
+func GeneratePresentationByRequest(request acapy.PresentationExchangeRecord, credentialID string) acapy.PresentationProof {
+	fields := request.PresentationRequest.RequestedAttributes
+
+	attributesProof := map[string]acapy.PresentationProofAttribute{}
+	for _, field := range fields {
+		attributesProof[field.Name] = acapy.PresentationProofAttribute{CredentialID: credentialID,
+			Revealed: true,
+		}
 	}
 
-	presentations, err := holder.QueryPresentationExchange(param)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	attributesProof := map[string]acapy.PresentationProofAttribute{
-		"name": {
-			CredentialID: credential.Referent,
-			Revealed:     true,
-		},
-	}
-
-	predicatesProof := map[string]acapy.PresentationProofPredicate{
-		"age": {
-			CredentialID: credential.Referent,
-		},
-	}
+	predicatesProof := map[string]acapy.PresentationProofPredicate{}
 
 	proof := acapy.PresentationProof{
 		SelfAttestedAttributes: map[string]string{},
 		RequestedAttributes:    attributesProof,
 		RequestedPredicates:    predicatesProof,
+	}
+
+	return proof
+}
+
+// holder send presentation
+func SendPresentationByID(request acapy.PresentationExchangeRecord, credential acapy.Credential) error {
+	proof := GeneratePresentationByRequest(request, credential.Referent)
+
+	//query presentation ID
+	param := acapy.QueryPresentationExchangeParams{
+		ThreadID: request.ThreadID,
+	}
+
+	presentations, err := holder.QueryPresentationExchange(param)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	_, err = holder.SendPresentationByID(presentations[0].PresentationExchangeID, proof)

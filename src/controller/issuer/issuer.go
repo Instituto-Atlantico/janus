@@ -12,6 +12,17 @@ import (
 
 var issuer = acapy.NewClient("http://localhost:8002/")
 
+func IsPresentationDone(ThreadID string) ([]acapy.PresentationExchangeRecord, error) {
+	params := acapy.QueryPresentationExchangeParams{ThreadID: ThreadID, State: "presentation_received"}
+	records, _ := issuer.QueryPresentationExchange(params)
+
+	if len(records) == 0 {
+		return []acapy.PresentationExchangeRecord{}, errors.New("Empty")
+	}
+
+	return records, nil
+}
+
 func GetSchema(schemaName string) (string, error) {
 	schemas, err := issuer.QuerySchemas(acapy.QuerySchemasParams{SchemaName: schemaName})
 	if err != nil {
@@ -98,27 +109,14 @@ func OfferCredentialV2(connectionID, credentialDefinition, comment string, attri
 
 // issuer sends a presentation
 func PresentationRequestRequest(credentialDefinition string, invitation acapy.Connection) (acapy.PresentationExchangeRecord, error) {
-	requestedPredicates := map[string]acapy.RequestedPredicate{
-		"age": acapy.RequestedPredicate{
-			Restrictions: []acapy.Restrictions{{ // Required in case of Names
-				CredentialDefinitionID: credentialDefinition,
-			}},
-			Name:   "age", // XOR with Names
-			PType:  acapy.PredicateGT,
-			PValue: 18,
-			NonRevoked: acapy.NonRevoked{
-				From: time.Now().Add(-time.Hour * 24 * 7).Unix(),
-				To:   time.Now().Unix(),
-			},
-		},
-	}
+	requestedPredicates := map[string]acapy.RequestedPredicate{}
 
 	requestedAttributes := map[string]acapy.RequestedAttribute{
-		"name": acapy.RequestedAttribute{
+		"temperature": acapy.RequestedAttribute{
 			Restrictions: []acapy.Restrictions{{ // Required in case of Names
 				CredentialDefinitionID: credentialDefinition,
 			}},
-			Name: "name", // XOR with Names
+			Name: "temperature", // XOR with Names
 			NonRevoked: acapy.NonRevoked{
 				From: time.Now().Add(-time.Hour * 24 * 7).Unix(),
 				To:   time.Now().Unix(),

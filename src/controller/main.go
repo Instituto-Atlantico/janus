@@ -15,35 +15,18 @@ var (
 	validAttributes = []acapy.CredentialPreviewAttributeV2{
 		{
 			MimeType: "text/plain",
-			Name:     "name",
-			Value:    "Vitor",
+			Name:     "temperature",
+			Value:    "false",
 		},
 		{
 			MimeType: "text/plain",
-			Name:     "age",
-			Value:    "20",
-		},
-	}
-
-	invalidAttributes = []acapy.CredentialPreviewAttributeV2{
-		{
-			MimeType: "text/plain",
-			Name:     "name",
-			Value:    "Vitor",
-		},
-		{
-			MimeType: "text/plain",
-			Name:     "age",
-			Value:    "10",
+			Name:     "humidity",
+			Value:    "true",
 		},
 	}
 )
 
-type Try interface {
-	acapy.Connection | acapy.Credential
-}
-
-func TryUtilNoError[R Try](fn func() (R, error)) (R, error) {
+func TryUtilNoError[R any](fn func() (R, error)) (R, error) {
 	cResponse := make(chan R)
 	cTimeout := make(chan string)
 
@@ -73,7 +56,7 @@ func TryUtilNoError[R Try](fn func() (R, error)) (R, error) {
 
 func main() {
 	//schemas and cred defs
-	schema := "9RgfwfrRcTjESbVVGaSQa:2:schema-janus-0104:0.1"
+	schema := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 	fmt.Println("Schema attributes: ", issuer.GetSchemaAttributes(schema))
 
 	fmt.Println("\nCreating a credential definition for the schema")
@@ -105,62 +88,37 @@ func main() {
 	// issuing credentials
 	fmt.Println("\nIssuing Credentials")
 
-	goodCred, err := holder.GetCredential("age", "20")
-	if err != nil && err.Error() == "empty" {
-		issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "good credential", validAttributes)
+	issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "good credential", validAttributes)
 
-		goodCred, err = TryUtilNoError(func() (acapy.Credential, error) { return holder.GetCredential("age", "20") })
-		if err != nil {
-			log.Fatal("timeout on holder.GetCredential('age', '20')")
-		}
+	cred, err := TryUtilNoError(func() (acapy.Credential, error) { return holder.GetCredential("schema_id", schema) })
+	if err != nil {
+		log.Fatal("timeout on holder.GetCredential(")
 	}
-	fmt.Println("Good cred: ", goodCred.Referent)
 
-	badCred, err := holder.GetCredential("age", "10")
-	if err != nil && err.Error() == "empty" {
-		issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "bad credential", invalidAttributes)
+	fmt.Println("cred: ", cred.Referent)
 
-		badCred, err = TryUtilNoError(func() (acapy.Credential, error) { return holder.GetCredential("age", "10") })
-		if err != nil {
-			log.Fatal("timeout on holder.GetCredential('age', '10')")
-		}
-	}
-	fmt.Println("Bad cred: ", badCred.Referent)
-
-	time.Sleep(2 * time.Second)
-	fmt.Println("\nAsking for presentation (good)")
+	fmt.Println("\nAsking for presentation")
 	presentationIssuer, _ := issuer.PresentationRequestRequest(credDef, issuerConnection)
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
+	fmt.Println(presentationIssuer.ThreadID)
+	holder.SendPresentationByID(presentationIssuer, cred)
 
-	holder.SendPresentationByID(presentationIssuer.ThreadID, goodCred)
-
-	time.Sleep(1 * time.Second)
+	fmt.Println("starting timer")
+	_, err = TryUtilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
+		return issuer.IsPresentationDone(presentationIssuer.ThreadID)
+	})
+	if err != nil {
+		log.Fatal("timeout issuer.IsPresentationDone")
+	}
+	fmt.Println("timer done")
 
 	_, err = issuer.VerifyPresentationByID(presentationIssuer)
 	if err != nil {
 		log.Fatal("verification failed: ", err)
 	}
 
-	LogMessageIfPresentationIsValid(presentationIssuer.ThreadID, "hello world")
-
-	time.Sleep(1 * time.Second)
-
-	fmt.Println("\nAsking for presentation (bad)")
-	presentationIssuer, _ = issuer.PresentationRequestRequest(credDef, issuerConnection)
-
-	time.Sleep(1 * time.Second)
-
-	holder.SendPresentationByID(presentationIssuer.ThreadID, badCred)
-
-	time.Sleep(1 * time.Second)
-
-	_, err = issuer.VerifyPresentationByID(presentationIssuer)
-	if err != nil {
-		log.Fatal("verification failed: ", err)
-	}
-
-	LogMessageIfPresentationIsValid(presentationIssuer.ThreadID, "hello world")
+	LogMessageIfPresentationIsValid(presentationIssuer.ThreadID, "YEEEEE VALID PRESENTATION 🥳")
 }
 
 func LogMessageIfPresentationIsValid(threadID, message string) {
