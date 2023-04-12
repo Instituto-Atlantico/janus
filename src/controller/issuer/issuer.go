@@ -17,7 +17,11 @@ func IsPresentationDone(ThreadID string) ([]acapy.PresentationExchangeRecord, er
 	records, _ := issuer.QueryPresentationExchange(params)
 
 	if len(records) == 0 {
-		return []acapy.PresentationExchangeRecord{}, errors.New("Empty")
+		params = acapy.QueryPresentationExchangeParams{ThreadID: ThreadID, State: "abandoned"}
+		records, _ = issuer.QueryPresentationExchange(params)
+		if len(records) == 0 {
+			return []acapy.PresentationExchangeRecord{}, errors.New("Empty")
+		}
 	}
 
 	return records, nil

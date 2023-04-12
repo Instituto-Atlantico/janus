@@ -55,10 +55,11 @@ func TryUtilNoError[R any](fn func() (R, error)) (R, error) {
 }
 
 func main() {
-	//schemas and cred defs
+	//schema
 	schema := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 	fmt.Println("Schema attributes: ", issuer.GetSchemaAttributes(schema))
 
+	//cred definition
 	fmt.Println("\nCreating a credential definition for the schema")
 	credDef, err := issuer.GetCredDef(schema)
 	if err != nil && err.Error() == "empty" {
@@ -66,7 +67,7 @@ func main() {
 	}
 	fmt.Println("Cred Def ID: ", credDef)
 
-	// Invitations
+	//invitations
 	fmt.Println("\nGetting connections and making invitations")
 
 	issuerConnection, err := issuer.GetConnection()
@@ -85,34 +86,39 @@ func main() {
 	fmt.Println("holder connection: ", holderConnection.ConnectionID)
 
 	time.Sleep(2 * time.Second)
+
 	// issuing credentials
 	fmt.Println("\nIssuing Credentials")
-
-	issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "good credential", validAttributes)
-
-	cred, err := TryUtilNoError(func() (acapy.Credential, error) { return holder.GetCredential("schema_id", schema) })
+	cred, err := holder.GetCredential("schema_id", schema)
 	if err != nil {
-		log.Fatal("timeout on holder.GetCredential(")
+		issuer.OfferCredentialV2(issuerConnection.ConnectionID, credDef, "good credential", validAttributes)
+		cred, err = TryUtilNoError(func() (acapy.Credential, error) { return holder.GetCredential("schema_id", schema) })
+		if err != nil {
+			log.Fatal("timeout on holder.GetCredential")
+		}
 	}
 
 	fmt.Println("cred: ", cred.Referent)
 
+	//Presentation
+	//ask for presentation
 	fmt.Println("\nAsking for presentation")
 	presentationIssuer, _ := issuer.PresentationRequestRequest(credDef, issuerConnection)
-
 	time.Sleep(2 * time.Second)
-	fmt.Println(presentationIssuer.ThreadID)
+	fmt.Println("presentation request ID:", presentationIssuer.ThreadID)
+
+	//send presentation
 	holder.SendPresentationByID(presentationIssuer, cred)
 
-	fmt.Println("starting timer")
 	_, err = TryUtilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
 		return issuer.IsPresentationDone(presentationIssuer.ThreadID)
 	})
 	if err != nil {
 		log.Fatal("timeout issuer.IsPresentationDone")
 	}
-	fmt.Println("timer done")
 
+	//verify
+	fmt.Println("Verifing presentation")
 	_, err = issuer.VerifyPresentationByID(presentationIssuer)
 	if err != nil {
 		log.Fatal("verification failed: ", err)
