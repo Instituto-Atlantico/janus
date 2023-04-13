@@ -101,30 +101,46 @@ func main() {
 	fmt.Println("cred: ", cred.Referent)
 
 	//Presentation
+
 	//ask for presentation
 	fmt.Println("\nAsking for presentation")
-	presentationIssuer, _ := issuer.PresentationRequestRequest(credDef, issuerConnection)
+	presentationIssuerHumidity, _ := issuer.PresentationRequestRequest(credDef, issuerConnection, "humidity")
+	presentationIssuerTemp, _ := issuer.PresentationRequestRequest(credDef, issuerConnection, "temperature")
 	time.Sleep(2 * time.Second)
-	fmt.Println("presentation request ID:", presentationIssuer.ThreadID)
+	fmt.Println("presentation request IDs:", presentationIssuerHumidity.ThreadID, presentationIssuerTemp.ThreadID)
 
 	//send presentation
-	holder.SendPresentationByID(presentationIssuer, cred)
+	holder.SendPresentationByID(presentationIssuerHumidity, cred)
+	holder.SendPresentationByID(presentationIssuerTemp, cred)
 
 	_, err = TryUtilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
-		return issuer.IsPresentationDone(presentationIssuer.ThreadID)
+		return issuer.IsPresentationDone(presentationIssuerHumidity.ThreadID)
 	})
 	if err != nil {
-		log.Fatal("timeout issuer.IsPresentationDone")
+		log.Fatal("timeout issuer.IsPresentationDone for humidity")
+	}
+
+	_, err = TryUtilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
+		return issuer.IsPresentationDone(presentationIssuerTemp.ThreadID)
+	})
+	if err != nil {
+		log.Fatal("timeout issuer.IsPresentationDone for temperature")
 	}
 
 	//verify
 	fmt.Println("Verifing presentation")
-	_, err = issuer.VerifyPresentationByID(presentationIssuer)
+	_, err = issuer.VerifyPresentationByID(presentationIssuerHumidity)
 	if err != nil {
 		log.Fatal("verification failed: ", err)
 	}
 
-	LogMessageIfPresentationIsValid(presentationIssuer.ThreadID, "YEEEEE VALID PRESENTATION 🥳")
+	_, err = issuer.VerifyPresentationByID(presentationIssuerTemp)
+	if err != nil {
+		log.Fatal("verification failed: ", err)
+	}
+
+	LogMessageIfPresentationIsValid(presentationIssuerHumidity.ThreadID, "YEEEEE VALID PRESENTATION for humidity🥳")
+	LogMessageIfPresentationIsValid(presentationIssuerTemp.ThreadID, "YEEEEE VALID PRESENTATION for temperature🥳")
 }
 
 func LogMessageIfPresentationIsValid(threadID, message string) {
@@ -136,6 +152,6 @@ func LogMessageIfPresentationIsValid(threadID, message string) {
 	if presentation.Verified == "true" {
 		fmt.Println("Message from holder: ", message) //this can be changed for other behaviors
 	} else {
-		log.Fatal("Presentation validation failed.")
+		log.Fatal("Presentation validation failed, presentation is not valid")
 	}
 }

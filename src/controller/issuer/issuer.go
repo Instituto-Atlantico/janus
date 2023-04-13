@@ -112,15 +112,20 @@ func OfferCredentialV2(connectionID, credentialDefinition, comment string, attri
 }
 
 // issuer sends a presentation
-func PresentationRequestRequest(credentialDefinition string, invitation acapy.Connection) (acapy.PresentationExchangeRecord, error) {
+func PresentationRequestRequest(credentialDefinition string, invitation acapy.Connection, sensorName string) (acapy.PresentationExchangeRecord, error) {
 	requestedPredicates := map[string]acapy.RequestedPredicate{}
 
 	requestedAttributes := map[string]acapy.RequestedAttribute{
-		"temperature": acapy.RequestedAttribute{
-			Restrictions: []acapy.Restrictions{{ // Required in case of Names
-				CredentialDefinitionID: credentialDefinition,
-			}},
-			Name: "temperature", // XOR with Names
+		sensorName: acapy.RequestedAttribute{
+			Restrictions: []map[string]string{
+				{
+					"cred_def_id": "credentialDefinition",
+				},
+				{
+					fmt.Sprintf("attr::%s::value", sensorName): "true",
+				},
+			},
+			Name: sensorName,
 			NonRevoked: acapy.NonRevoked{
 				From: time.Now().Add(-time.Hour * 24 * 7).Unix(),
 				To:   time.Now().Unix(),
@@ -145,7 +150,6 @@ func PresentationRequestRequest(credentialDefinition string, invitation acapy.Co
 		),
 	}
 
-	fmt.Println("Send Presentation Request")
 	sendPresentation, err := issuer.SendPresentationRequest(presentationRequestRequest)
 	if err != nil {
 		log.Fatal(err)
