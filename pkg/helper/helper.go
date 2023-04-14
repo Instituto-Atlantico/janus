@@ -61,9 +61,9 @@ func ParseCommand(command string) []string {
 	return parsed
 }
 
-func SliceContains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
+func SliceContains[T comparable](slice []T, value T) bool {
+	for _, sliceValue := range slice {
+		if value == sliceValue {
 			return true
 		}
 	}

@@ -119,6 +119,8 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 				}
 
 				fmt.Println("Validate data:", validatedData)
+
+				//send to dojot
 			}
 
 		}
