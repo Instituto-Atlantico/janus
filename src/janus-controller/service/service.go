@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,23 +29,36 @@ type Service struct {
 	CredDefinitionId string
 }
 
+var AllowedPermissions = []string{
+	"temperature", "humidity",
+}
+
 func (s *Service) Init() {
-	err := local.DeployAgent("192.168.0.5")
+	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
+
+	err := local.DeployAgent("192.168.0.12")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.5:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.12:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
 	// create cred definition
-	s.CredDefinitionId, err = agents.CreateCredDef(s.ServerClient, "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0")
+	s.CredDefinitionId, err = agents.GetCredDef(s.ServerClient, schemaId)
 	if err != nil {
-		log.Fatal(err)
+		if err.Error() == "empty" {
+			s.CredDefinitionId, err = agents.CreateCredDef(s.ServerClient, schemaId)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			log.Fatal(err)
+		}
 	}
 
-	log.Println("CredDefinitionID", s.CredDefinitionId)
+	log.Println("CredDefinitionID: ", s.CredDefinitionId)
 
 	s.Agents = make(map[string]*Device)
 }
@@ -73,7 +87,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					time.Sleep(2 * time.Second)
 
 					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
-					if err == nil {
+					if err != nil {
 						log.Println(err)
 
 						return
@@ -92,7 +106,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					}
 
 					// if presentation is valid store value
-					result, err := agents.VerifyPresentationByID(agentClient.Client, presentationRequest)
+					result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
 					if err != nil {
 						log.Println(err)
 
@@ -141,11 +155,14 @@ func (s *Service) RunApi(port string) {
 
 		permissionList := make([]acapy.CredentialPreviewAttributeV2, 0)
 
-		for _, sensorType := range provisionBody.Permissions {
+		for _, sensorType := range AllowedPermissions {
+
+			allowed := helper.SliceContains(provisionBody.Permissions, sensorType)
+
 			permission := acapy.CredentialPreviewAttributeV2{
 				MimeType: "text/plain",
 				Name:     sensorType,
-				Value:    "1",
+				Value:    strconv.FormatBool(allowed),
 			}
 
 			permissionList = append(permissionList, permission)
@@ -160,18 +177,29 @@ func (s *Service) RunApi(port string) {
 
 		go func() {
 			helper.TryUntilNoError(device.Client.Status, 600) //check if agent is already up and running
-			log.Println("Changing invitation")
+			log.Println("\nChanging invitation for agent ", ip)
 
 			invitationID, _, _ := agents.ChangeInvitations(s.ServerClient, device.Client)
 			device.ConnectionID = invitationID
 
-			fmt.Println(device)
+			time.Sleep(5 * time.Second)
+
+			cred, err := agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId) //issue new credential only if no previous created
+			if err != nil && err.Error() == "empty" {
+				log.Println("\nIssuing credential for agent ", ip)
+				agents.IssueCredential(s.ServerClient, s.CredDefinitionId, device.ConnectionID, permissionList)
+				cred, err = helper.TryUntilNoError(func() (acapy.Credential, error) {
+					return agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId)
+				}, 20)
+
+				if err != nil {
+					log.Println("Timeout on agents.GetCredential")
+				}
+			}
+
+			log.Println("Device`s cred: ", cred)
 
 			s.Agents[ip] = &device
-
-			time.Sleep(2 * time.Second)
-
-			agents.IssueCredential(s.ServerClient, s.CredDefinitionId, device.ConnectionID, permissionList)
 		}()
 
 		b, _ := json.Marshal(provisionBody)

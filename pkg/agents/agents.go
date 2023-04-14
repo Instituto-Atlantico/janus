@@ -49,6 +49,22 @@ func CreateCredDef(issuer *acapy.Client, schemaId string) (string, error) {
 	return credentialDefinition, nil
 }
 
+func GetCredDef(issuer *acapy.Client, schemaId string) (string, error) {
+	credentialDefinitions, err := issuer.QueryCredentialDefinitions(acapy.QueryCredentialDefinitionsParams{
+		SchemaID: schemaId,
+	})
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	if len(credentialDefinitions) == 0 {
+		return "", errors.New("empty")
+	}
+
+	return credentialDefinitions[0], nil
+}
+
 func IssueCredential(issuer *acapy.Client, credentialDefinition string, connectionId string, attribute []acapy.CredentialPreviewAttributeV2) error {
 	credentialPreview := acapy.NewCredentialPreviewV2(attribute)
 

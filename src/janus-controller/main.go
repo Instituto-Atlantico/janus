@@ -26,5 +26,5 @@ func main() {
 	service.Init()
 
 	service.RunCollector(5)
-	service.RunApi("8081")
+	service.RunApi("8080")
 }

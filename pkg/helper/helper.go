@@ -60,3 +60,12 @@ func ParseCommand(command string) []string {
 	parsed := strings.Split(command, " ")
 	return parsed
 }
+
+func SliceContains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
