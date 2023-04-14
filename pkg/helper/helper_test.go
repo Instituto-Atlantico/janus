@@ -56,3 +56,24 @@ func TestValidateSSHHostName(t *testing.T) {
 		assert.False(t, valid)
 	})
 }
+
+func TestSliceContains(t *testing.T) {
+
+	t.Run("Should be true if strings are equals", func(t *testing.T) {
+		slice := []string{"foo", "bar"}
+		value := "bar"
+
+		resp := SliceContains(slice, value)
+
+		assert.True(t, resp)
+	})
+
+	t.Run("Should be false if strings are equals", func(t *testing.T) {
+		slice := []string{"foo", "bar"}
+		value := "baz"
+
+		resp := SliceContains(slice, value)
+
+		assert.False(t, resp)
+	})
+}
