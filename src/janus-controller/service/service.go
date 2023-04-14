@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Instituto-Atlantico/go-acapy-client"
 	"github.com/Instituto-Atlantico/janus/pkg/agents"
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/local"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/remote"
-	"github.com/ldej/go-acapy-client"
 )
 
 type Device struct {
@@ -29,12 +29,12 @@ type Service struct {
 }
 
 func (s *Service) Init() {
-	err := local.DeployAgent("192.168.0.12")
+	err := local.DeployAgent("192.168.0.5")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.12:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.5:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
@@ -58,6 +58,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 			if len(ips) > 0 {
 				fmt.Println("Getting sensors data")
 				agentIP := ips[0]
+				agentClient := s.Agents[agentIP.String()]
 
 				sensorData := sensors.CollectSensorData(agentIP.String(), "5000")
 
@@ -67,11 +68,43 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					fmt.Printf("Sensor [%s] has Value [%s]\n", name, value)
 
 					// request presentation proof for name
+					presentationRequest, _ := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
+
+					time.Sleep(2 * time.Second)
+
+					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
+					if err == nil {
+						log.Println(err)
+
+						return
+					}
+
+					agents.SendPresentationByID(agentClient.Client, presentationRequest, credential)
+
+					// wait for presentation to be ready
+					_, err = helper.TryUntilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
+						return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
+					}, 20)
+					if err != nil {
+						log.Println("Timeout presentation done")
+
+						return
+					}
 
 					// if presentation is valid store value
+					result, err := agents.VerifyPresentationByID(agentClient.Client, presentationRequest)
+					if err != nil {
+						log.Println(err)
 
-					validatedData[name] = value
+						return
+					}
+
+					if result.Verified == "true" {
+						validatedData[name] = value
+					}
 				}
+
+				fmt.Println("Validate data:", validatedData)
 			}
 
 		}

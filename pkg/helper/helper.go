@@ -6,15 +6,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/ldej/go-acapy-client"
 )
 
-type Try interface {
-	acapy.Connection | acapy.Credential | acapy.Status
-}
-
-func TryUntilNoError[R Try](fn func() (R, error), timeoutInSeconds int) (R, error) {
+func TryUntilNoError[R any](fn func() (R, error), timeoutInSeconds int) (R, error) {
 	cResponse := make(chan R)
 	cTimeout := make(chan string)
 
