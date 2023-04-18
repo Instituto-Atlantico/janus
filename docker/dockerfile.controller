@@ -1,0 +1,26 @@
+FROM golang:1.20-alpine AS build_base
+
+# Set envs
+# ENV SERVER-AGENT-IP 192.168.0.12
+
+RUN apk add --no-cache git
+
+WORKDIR /tmp/janus
+
+#Copy whole repository
+COPY . .
+
+RUN go mod download
+RUN go mod tidy
+
+# Build Just the controller 
+RUN go build -o ./out/janus-controller ./src/janus-controller
+
+# Start fresh from a smaller image
+FROM alpine:3.9 
+
+# Copy only binary
+COPY --from=build_base /tmp/janus/out/janus-controller /janus-controller
+
+# This container exposes port 8080 to the outside world
+EXPOSE 8080
