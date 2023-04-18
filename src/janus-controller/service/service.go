@@ -14,7 +14,6 @@ import (
 	"github.com/Instituto-Atlantico/janus/pkg/agents"
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
-	"github.com/Instituto-Atlantico/janus/src/janus-controller/local"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/remote"
 )
 
@@ -33,15 +32,12 @@ var AllowedPermissions = []string{
 	"temperature", "humidity",
 }
 
-func (s *Service) Init() {
+func (s *Service) Init(serverAgentIp string) {
+	var err error
+
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 
-	err := local.DeployAgent("192.168.0.12")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.ServerClient = acapy.NewClient("http://192.168.0.12:8002")
+	s.ServerClient = acapy.NewClient(fmt.Sprintf("http://%s:8002", serverAgentIp))
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
