@@ -8,15 +8,31 @@ import (
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
 )
 
-type AgentInfo struct {
+type ComposeInfo struct {
 	Seed      string
 	Name      string
 	Endpoint  string
 	AdminPort string
 	AgentPort string
+
+	ControllerPort string
 }
 
-func InstantiateAgent(agent AgentInfo, hostName, profile string, allowRedeploy bool) error {
+func parseComposeInfo(info ComposeInfo, cmd *exec.Cmd) {
+	cmd.Env = os.Environ()
+
+	//Aca-py
+	cmd.Env = append(cmd.Env, fmt.Sprintf("WALLET_SEED=%s", info.Seed))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("AGENT_NAME=%s", info.Name))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("ENDPOINT=%s", info.Endpoint))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("ADMIN_PORT=%s", info.AdminPort))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("AGENT_PORT=%s", info.AgentPort))
+
+	//Janus-controller
+	cmd.Env = append(cmd.Env, fmt.Sprintf("CONTROLLER_PORT=%s", info.ControllerPort))
+}
+
+func InstantiateAgent(agent ComposeInfo, hostName, profile string) error {
 	command := "docker "
 
 	// add -H host name if remote deploying
@@ -24,32 +40,16 @@ func InstantiateAgent(agent AgentInfo, hostName, profile string, allowRedeploy b
 		command += fmt.Sprintf("-H ssh://%s ", hostName)
 	}
 
-	projectName := "janus"
-
-	if agent.Name != "" {
-		projectName += fmt.Sprintf("-%s", agent.Name)
-	}
-
 	// append the rest of the command
-	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p %s up -d", profile, projectName)
-
-	if !allowRedeploy {
-		command += " --no-recreate"
-	}
-
+	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p janus-%s up -d --no-recreate", profile, profile)
 	fmt.Println(command)
-	parsedCommand := helper.ParseCommand(command)
 
+	//parse the command to a []string format and pass it to a CMD
+	parsedCommand := helper.ParseCommand(command)
 	cmd := exec.Command(parsedCommand[0], parsedCommand[1:]...)
 
-	cmd.Env = os.Environ()
-
-	// The arguments are passed to the docker-compose.yml as env variables
-	cmd.Env = append(cmd.Env, fmt.Sprintf("AGENT_PORT=%s", agent.AgentPort))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("ADMIN_PORT=%s", agent.AdminPort))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("WALLET_SEED=%s", agent.Seed))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("AGENT_NAME=%s", agent.Name))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("ENDPOINT=%s", agent.Endpoint))
+	//parse compose info to environment variables
+	parseComposeInfo(agent, cmd)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

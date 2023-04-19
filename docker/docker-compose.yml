@@ -1,6 +1,20 @@
 version: "3.5"
 
 services:
+  controller:
+    image: janus-test:latest
+    container_name: janus-controller
+    command:
+      [
+        "/janus-controller",
+        "--server-agent-ip",
+        "agent"
+      ]
+    ports:
+      - "${CONTROLLER_PORT}:8080"
+    profiles:
+      - issuer
+
   agent:
     image: bcgovimages/aries-cloudagent:py36-1.16-1_1.0.0-rc1
 
@@ -42,22 +56,22 @@ services:
     depends_on: #required while image doesnt support arm architecture
       - amd64_emulator
     profiles:
-      - raspberry
-      - server
+      - issuer
+      - holder
 
-  amd64_emulator:
+  amd64_emulator: #required by now because of problems in multiplatform builds of aca-py
     container_name: amd64
     image: tonistiigi/binfmt
     privileged: true
     command: "--install amd64"  
     profiles:
-      - raspberry
+      - holder
 
-  temp_collector:
-    container_name: temp_collector
-    image: elazzar/rpi-dht11-api-docker
-    privileged: true
-    ports: 
-      - 5000:5000
-    profiles:
-      - raspberry
+  # temp_collector:
+  #   container_name: temp_collector
+  #   image: elazzar/rpi-dht11-api-docker
+  #   privileged: true
+  #   ports: 
+  #     - 5000:5000
+  #   profiles:
+  #     - holder

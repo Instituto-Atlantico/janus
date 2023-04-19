@@ -144,12 +144,12 @@ func (s *Service) RunApi(port string) {
 		}
 
 		//deploy agent
-		err = remote.DeployAgent(provisionBody)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, "Error Deploying agent: ", err)
-			return
-		}
+		// err = remote.DeployAgent(provisionBody)
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusBadRequest)
+		// 	fmt.Fprint(w, "Error Deploying agent: ", err)
+		// 	return
+		// }
 
 		permissionList := make([]acapy.CredentialPreviewAttributeV2, 0)
 

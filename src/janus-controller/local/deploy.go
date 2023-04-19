@@ -1,43 +1,34 @@
 package local
 
-import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"strconv"
+// func DeployAgent(ip string) error {
+// 	// Instantiate Agent
+// 	agent := agent_deploy.AgentInfo{
+// 		Name:      "issuer",
+// 		AdminPort: strconv.Itoa(8002),
+// 		AgentPort: strconv.Itoa(8001),
+// 		Endpoint:  fmt.Sprintf("http://%s", ip),
+// 	}
 
-	"github.com/Instituto-Atlantico/janus/pkg/agent_deploy"
-)
+// 	// generate seed and did
+// 	seed, did := agent_deploy.ProvideDid()
+// 	log.Printf("Seed generated: %s\n", seed)
+// 	log.Printf("DiD registered: %s\n", did)
 
-func DeployAgent(ip string) error {
-	// Instantiate Agent
-	agent := agent_deploy.AgentInfo{
-		Name:      "issuer",
-		AdminPort: strconv.Itoa(8002),
-		AgentPort: strconv.Itoa(8001),
-		Endpoint:  fmt.Sprintf("http://%s", ip),
-	}
+// 	agent.Seed = seed
 
-	// generate seed and did
-	seed, did := agent_deploy.ProvideDid()
-	log.Printf("Seed generated: %s\n", seed)
-	log.Printf("DiD registered: %s\n", did)
+// 	// log agent
+// 	parsedAgent, err := json.Marshal(agent)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	agent.Seed = seed
+// 	log.Printf("Deploying agent: %s\n", parsedAgent)
 
-	// log agent
-	parsedAgent, err := json.Marshal(agent)
-	if err != nil {
-		return err
-	}
+// 	// Instantiate Agent
+// 	err = agent_deploy.InstantiateAgent(agent, "", "server", false)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	log.Printf("Deploying agent: %s\n", parsedAgent)
-
-	// Instantiate Agent
-	err = agent_deploy.InstantiateAgent(agent, "", "server", false)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// 	return nil
+// }
