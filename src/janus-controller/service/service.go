@@ -13,6 +13,7 @@ import (
 	"github.com/Instituto-Atlantico/go-acapy-client"
 	"github.com/Instituto-Atlantico/janus/pkg/agents"
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
+	"github.com/Instituto-Atlantico/janus/pkg/mqtt_pub"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/local"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/remote"
@@ -27,6 +28,11 @@ type Service struct {
 	ServerClient     *acapy.Client
 	Agents           map[string]*Device
 	CredDefinitionId string
+	BrokerServerIp   string
+	BrokerUsername   string
+	BrokerPassword   string
+	PublicationTopic string
+	SensorDataApiUrl string
 }
 
 var AllowedPermissions = []string{
@@ -36,12 +42,12 @@ var AllowedPermissions = []string{
 func (s *Service) Init() {
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 
-	err := local.DeployAgent("192.168.0.12")
+	err := local.DeployAgent("192.168.0.4")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.12:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.4:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
@@ -120,9 +126,15 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 				fmt.Println("Validate data:", validatedData)
 
-				//send to dojot
-			}
+				parsedValidatedData, err := json.Marshal(validatedData)
+				if err != nil {
+					log.Println(err)
+				}
 
+				// send sensor data to Dojot upon presentation proof
+				fmt.Println("Publishing message to Dojot...")
+				mqtt_pub.PublishMessage(s.BrokerServerIp, s.BrokerUsername, s.BrokerPassword, s.SensorDataApiUrl, s.PublicationTopic, parsedValidatedData)
+			}
 		}
 	}()
 }
@@ -176,6 +188,12 @@ func (s *Service) RunApi(port string) {
 
 		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
 		device.Client = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
+
+		s.BrokerServerIp = provisionBody.BrokerServerIp
+		s.BrokerUsername = provisionBody.BrokerUsername
+		s.BrokerPassword = provisionBody.BrokerPassword
+		s.PublicationTopic = fmt.Sprintf("%s/attrs", provisionBody.BrokerUsername)
+		s.SensorDataApiUrl = provisionBody.SensorDataApiUrl
 
 		go func() {
 			helper.TryUntilNoError(device.Client.Status, 600) //check if agent is already up and running

@@ -11,13 +11,16 @@ import (
 )
 
 type ProvisionBody struct {
-	DeviceHostName string   `json:"deviceHostName"` //user@ip
-	DojotId        string   `json:"dojotId"`        //abc123
-	Permissions    []string `json:"permissions"`    // ["temperature", "humidity"]
+	DeviceHostName   string   `json:"deviceHostName" required:"true"`   // user@ip
+	Permissions      []string `json:"permissions" required:"true"`      // ["temperature", "humidity"]
+	BrokerServerIp   string   `json:"brokerServerIp" required:"true"`   // brokerIP
+	BrokerUsername   string   `json:"brokerUsername" required:"true"`   // brokerUser:deviceID
+	BrokerPassword   string   `json:"brokerPassword" required:"true"`   // brokerPass
+	SensorDataApiUrl string   `json:"sensorDataApiUrl" required:"true"` // sensorDataAPI
 }
 
 func ProvisionBodyIsValid(body ProvisionBody) bool {
-	if body.DeviceHostName == "" || body.DojotId == "" || len(body.Permissions) == 0 {
+	if body.DeviceHostName == "" || len(body.Permissions) == 0 || body.BrokerServerIp == "" || body.BrokerUsername == "" || body.BrokerPassword == "" || body.SensorDataApiUrl == "" {
 		return false
 	}
 
