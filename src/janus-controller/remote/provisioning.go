@@ -11,12 +11,12 @@ import (
 )
 
 type ProvisionBody struct {
-	DeviceHostName   string   `json:"deviceHostName" required:"true"`   // user@ip
-	Permissions      []string `json:"permissions" required:"true"`      // ["temperature", "humidity"]
-	BrokerServerIp   string   `json:"brokerServerIp" required:"true"`   // brokerIP
-	BrokerUsername   string   `json:"brokerUsername" required:"true"`   // brokerUser:deviceID
-	BrokerPassword   string   `json:"brokerPassword" required:"true"`   // brokerPass
-	SensorDataApiUrl string   `json:"sensorDataApiUrl" required:"true"` // sensorDataAPI
+	DeviceHostName   string   `json:"deviceHostName"`   // user@ip
+	Permissions      []string `json:"permissions"`      // ["temperature", "humidity"]
+	BrokerServerIp   string   `json:"brokerServerIp"`   // brokerIP
+	BrokerUsername   string   `json:"brokerUsername"`   // brokerUser:deviceID
+	BrokerPassword   string   `json:"brokerPassword"`   // brokerPass
+	SensorDataApiUrl string   `json:"sensorDataApiUrl"` // sensorDataAPI
 }
 
 func ProvisionBodyIsValid(body ProvisionBody) bool {
