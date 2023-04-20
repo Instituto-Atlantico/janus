@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	agentIp string
+	agentIp        string
+	controllerPort string
 )
 
 var issuerCmd = &cobra.Command{
@@ -26,7 +27,7 @@ func init() {
 	deployCmd.AddCommand(issuerCmd)
 
 	issuerCmd.Flags().StringVar(&agentIp, "agent-ip", "", "The device`s ip of the network with the holder devices")
-
+	issuerCmd.Flags().StringVar(&controllerPort, "controller-port", "8080", "The port that the janus-controller will run")
 	issuerCmd.MarkFlagRequired("agent-ip")
 }
 
@@ -36,7 +37,7 @@ func deployAgentLocally() {
 		AdminPort:      agentApiPort,
 		AgentPort:      agentServicePort,
 		Endpoint:       fmt.Sprintf("http://%s", agentIp),
-		ControllerPort: "8080",
+		ControllerPort: controllerPort,
 	}
 
 	// generate seed and did
