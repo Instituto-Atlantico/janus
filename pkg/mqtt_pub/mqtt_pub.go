@@ -1,6 +1,7 @@
 package mqtt_pub
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,12 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-func PublishMessage(brokerServerIp, brokerUsername, brokerPassword, sensorDataApiUrl, publicationTopic string, sensorData interface{}) {
+type BrokerData struct {
+	BrokerServerIp string
+	BrokerPassword string
+}
+
+func PublishMessage(brokerData BrokerData, brokerUsername, publicationTopic string, sensorData map[string]any) {
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 		fmt.Printf("TOPIC: %s\n", msg.Topic())
 		fmt.Printf("MSG: %s\n", msg.Payload())
@@ -17,12 +23,12 @@ func PublishMessage(brokerServerIp, brokerUsername, brokerPassword, sensorDataAp
 
 	mqtt.DEBUG = log.New(os.Stdout, "", 0)
 	mqtt.ERROR = log.New(os.Stdout, "", 0)
-	opts := mqtt.NewClientOptions().AddBroker(brokerServerIp + ":1883").SetClientID("dojot")
+	opts := mqtt.NewClientOptions().AddBroker(brokerData.BrokerServerIp + ":1883").SetClientID("dojot")
 
 	// Set username
 	opts.SetUsername(brokerUsername)
 	// Set password
-	opts.SetPassword(brokerPassword)
+	opts.SetPassword(brokerData.BrokerPassword)
 	opts.SetKeepAlive(60 * time.Second)
 	// Set the message callback handler
 	opts.SetDefaultPublishHandler(f)
@@ -31,11 +37,16 @@ func PublishMessage(brokerServerIp, brokerUsername, brokerPassword, sensorDataAp
 
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+		log.Println(token.Error())
+	}
+
+	parsedSensorData, err := json.Marshal(sensorData)
+	if err != nil {
+		log.Println(err)
 	}
 
 	// Publish a message
-	token := client.Publish(publicationTopic, 1, false, sensorData)
+	token := client.Publish(publicationTopic, 1, false, parsedSensorData)
 	token.Wait()
 
 	time.Sleep(6 * time.Second)
