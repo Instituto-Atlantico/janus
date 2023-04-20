@@ -27,7 +27,7 @@ func init() {
 	deployCmd.AddCommand(issuerCmd)
 
 	issuerCmd.Flags().StringVar(&agentIp, "agent-ip", "", "The device`s ip of the network with the holder devices")
-	issuerCmd.Flags().StringVar(&controllerPort, "controller-port", "8080", "The port that the janus-controller will run")
+	issuerCmd.Flags().StringVar(&controllerPort, "controller-port", "8081", "The port that the janus-controller will run")
 	issuerCmd.MarkFlagRequired("agent-ip")
 }
 
