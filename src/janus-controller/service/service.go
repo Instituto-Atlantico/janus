@@ -13,20 +13,23 @@ import (
 	"github.com/Instituto-Atlantico/go-acapy-client"
 	"github.com/Instituto-Atlantico/janus/pkg/agents"
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
+	"github.com/Instituto-Atlantico/janus/pkg/mqtt_pub"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/local"
 	"github.com/Instituto-Atlantico/janus/src/janus-controller/remote"
 )
 
 type Device struct {
-	Client       *acapy.Client
-	ConnectionID string
+	Client         *acapy.Client
+	ConnectionID   string
+	BrokerUsername string
 }
 
 type Service struct {
 	ServerClient     *acapy.Client
 	Agents           map[string]*Device
 	CredDefinitionId string
+	Broker           mqtt_pub.BrokerData
 }
 
 var AllowedPermissions = []string{
@@ -36,12 +39,12 @@ var AllowedPermissions = []string{
 func (s *Service) Init() {
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 
-	err := local.DeployAgent("192.168.0.12")
+	err := local.DeployAgent("192.168.0.5")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s.ServerClient = acapy.NewClient("http://192.168.0.12:8002")
+	s.ServerClient = acapy.NewClient("http://192.168.0.5:8002")
 
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
@@ -120,9 +123,11 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 				fmt.Println("Validate data:", validatedData)
 
-				//send to dojot
+				// send sensor data to Dojot upon presentation proof
+				fmt.Println("Publishing message to Dojot...")
+				publicationTopic := fmt.Sprintf("%s/attrs", agentClient.BrokerUsername)
+				mqtt_pub.PublishMessage(s.Broker, agentClient.BrokerUsername, publicationTopic, validatedData)
 			}
-
 		}
 	}()
 }
@@ -176,6 +181,12 @@ func (s *Service) RunApi(port string) {
 
 		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
 		device.Client = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
+		device.BrokerUsername = provisionBody.BrokerUsername
+
+		s.Broker = mqtt_pub.BrokerData{
+			BrokerServerIp: provisionBody.BrokerServerIp,
+			BrokerPassword: provisionBody.BrokerPassword,
+		}
 
 		go func() {
 			helper.TryUntilNoError(device.Client.Status, 600) //check if agent is already up and running
