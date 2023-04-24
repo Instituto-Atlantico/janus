@@ -7,7 +7,7 @@ RUN apk add --no-cache git
 
 WORKDIR /tmp/janus
 
-#Copy whole repository
+# Copy the whole repository
 COPY . .
 
 RUN go mod download

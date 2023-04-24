@@ -53,7 +53,7 @@ services:
     ports:
       - "${ADMIN_PORT}:${ADMIN_PORT}"
       - "${AGENT_PORT}:${AGENT_PORT}"
-    depends_on: #required while image doesnt support arm architecture
+    depends_on:  #required while the image doesn't supports arm architecture
       - amd64_emulator
     profiles:
       - issuer
@@ -66,12 +66,3 @@ services:
     command: "--install amd64"  
     profiles:
       - holder
-
-  # temp_collector:
-  #   container_name: temp_collector
-  #   image: elazzar/rpi-dht11-api-docker
-  #   privileged: true
-  #   ports: 
-  #     - 5000:5000
-  #   profiles:
-  #     - holder

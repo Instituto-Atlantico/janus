@@ -40,7 +40,7 @@ func deployAgentLocally() {
 		ControllerPort: controllerPort,
 	}
 
-	// generate seed and did
+	// generate a seed and did
 	seed, did := agent_deploy.ProvideDid()
 	log.Printf("Seed generated: %s\n", seed)
 	log.Printf("DiD registered: %s\n", did)

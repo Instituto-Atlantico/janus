@@ -35,7 +35,7 @@ func parseComposeInfo(info ComposeInfo, cmd *exec.Cmd) {
 func InstantiateAgent(agent ComposeInfo, hostName, profile string) error {
 	command := "docker "
 
-	// add -H host name if remote deploying
+	// add -H hostname if remote deploying
 	if hostName != "" {
 		command += fmt.Sprintf("-H ssh://%s ", hostName)
 	}
