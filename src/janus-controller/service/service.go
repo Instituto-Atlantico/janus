@@ -15,8 +15,6 @@ import (
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/Instituto-Atlantico/janus/pkg/mqtt_pub"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
-	"github.com/Instituto-Atlantico/janus/src/janus-controller/local"
-	"github.com/Instituto-Atlantico/janus/src/janus-controller/remote"
 )
 
 type Device struct {
@@ -36,20 +34,17 @@ var AllowedPermissions = []string{
 	"temperature", "humidity",
 }
 
-func (s *Service) Init() {
+func (s *Service) Init(serverAgentIp string) {
+	var err error
+
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 
-	err := local.DeployAgent("192.168.0.5")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	s.ServerClient = acapy.NewClient("http://192.168.0.5:8002")
-
+	s.ServerClient = acapy.NewClient(fmt.Sprintf("http://%s:8002", serverAgentIp))
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
 	// create cred definition
 	s.CredDefinitionId, err = agents.GetCredDef(s.ServerClient, schemaId)
+
 	if err != nil {
 		if err.Error() == "empty" {
 			s.CredDefinitionId, err = agents.CreateCredDef(s.ServerClient, schemaId)
@@ -142,21 +137,13 @@ func (s *Service) RunApi(port string) {
 		}
 
 		// parse body
-		var provisionBody remote.ProvisionBody
+		var provisionBody ProvisionBody
 		err := json.NewDecoder(r.Body).Decode(&provisionBody)
 
-		if !remote.ProvisionBodyIsValid(provisionBody) || err != nil {
+		if !ProvisionBodyIsValid(provisionBody) || err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprint(w, "Invalid body")
 
-			return
-		}
-
-		//deploy agent
-		err = remote.DeployAgent(provisionBody)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, "Error Deploying agent: ", err)
 			return
 		}
 

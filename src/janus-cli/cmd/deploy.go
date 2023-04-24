@@ -5,23 +5,21 @@ import (
 )
 
 var (
-	agentName string
-	agentPort int
+	agentServicePort string
+	agentApiPort     string
 )
 
 // DeployCmd represents the deploy command
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
-	Short: "Deploy an aca-py agent",
+	Short: "Deploy an issuer or Holder janus agents",
 	Long:  ``,
-	Run:   func(cmd *cobra.Command, args []string) {},
+	Run:   func(cmd *cobra.Command, args []string) { cmd.Println(cmd.Usage()) },
 }
 
 func init() {
-	deployCmd.PersistentFlags().StringVar(&agentName, "agent-name", "", "The aca-py agent name. This flag is optional but recommended so the agent will be better named")
-	deployCmd.PersistentFlags().IntVar(&agentPort, "agent-port", 0, "The aca-py agent port. This flag is required and agent-port+1 will be used for aca-py admin page")
-
-	deployCmd.MarkPersistentFlagRequired("agent-port")
+	deployCmd.PersistentFlags().StringVar(&agentApiPort, "agent-api-port", "8002", "The aca-py agent api port, used for the controller and external agent requests.")
+	deployCmd.PersistentFlags().StringVar(&agentServicePort, "agent-service-port", "8001", "The aca-py agent service port, used internally for communication with the ledger")
 
 	rootCmd.AddCommand(deployCmd)
 }
