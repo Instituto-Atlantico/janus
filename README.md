@@ -33,7 +33,7 @@ git clone https://github.com/Instituto-Atlantico/janus.git
 
 ## How to build the CLI
 
-Using Janus directly through go run is not recommended because some embed and configurations are made on build process. 
+Using Janus directly through go run is not recommended because some embed and configurations are made on the build process. 
 
 To build run:
 
@@ -41,7 +41,7 @@ To build run:
 cd janus && make build-cli
 ```
 
-## How to deploy an agent on a remote device via Ubuntu terminal
+## How to deploy an agent on a remote device via the Ubuntu terminal
 
 Having an ssh key par configured and already passed as authorized_keys on remote device is required. Need help with this? Click [here](https://phoenixnap.com/kb/ssh-with-key).
 
@@ -55,9 +55,9 @@ For example:
 ./bin/janus-cli_linux_amd64 deploy remote --agent-port 8001 --agent-name demo -H pi@192.168.0.2
 ```
 
-The aries agent will be available at port 8001 and the admin page at port 8002, such as http://192.168.0.2:8002
+The Aries agent will be available at port 8001 and the admin page at port 8002, such as http://192.168.0.2:8002
 
-## How to deploy an agent locally via Ubuntu terminal
+## How to deploy an agent locally via the Ubuntu terminal
 
 To deploy locally you can run, but it will only be able to communicate with other local agents.
 
@@ -71,9 +71,9 @@ For example:
 ./bin/janus-cli_linux_amd64 deploy local --agent-port 8001 --agent-name demo
 ```
 
-The aries agent will be available at port 8001 and the admin page at port 8002, such as http://localhost:8002
+The Aries agent will be available at port 8001 and the admin page at port 8002, such as http://localhost:8002
 
-If you want to have a communication between local and remote devices you need to pass the network IP for local device:
+If you want to have communication between local and remote devices you need to pass the network IP for the local device:
 
 ```
 ./bin/janus-cli_linux_amd64 deploy local --agent-port <port-number> --agent-name <agent-name> --agent-ip <agent-ip>
