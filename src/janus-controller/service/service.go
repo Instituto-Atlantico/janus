@@ -216,6 +216,6 @@ func (s *Service) RunApi(port string) {
 	log.Println("Server listening on port ", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 }
