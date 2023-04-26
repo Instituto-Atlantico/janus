@@ -40,7 +40,10 @@ func (s *Service) Init(serverAgentIp string) {
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 
 	s.ServerClient = acapy.NewClient(fmt.Sprintf("http://%s:8002", serverAgentIp))
-	helper.TryUntilNoError(s.ServerClient.Status, 600)
+	_, err = helper.TryUntilNoError(s.ServerClient.Status, 20)
+	if err != nil {
+		log.Fatal("Timeout when trying to connect with issuer aca-py agent")
+	}
 
 	// create cred definition
 	s.CredDefinitionId, err = agents.GetCredDef(s.ServerClient, schemaId)
@@ -213,6 +216,6 @@ func (s *Service) RunApi(port string) {
 	log.Println("Server listening on port ", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 }
