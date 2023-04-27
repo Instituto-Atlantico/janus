@@ -44,11 +44,14 @@ func (s *Service) Init(serverAgentIp string) {
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
 	// create cred definition
-	log.InfoLogger("Issuing credential definition")
+	log.InfoLogger("Looking for a valid credential definition")
+
 	s.CredDefinitionId, err = agents.GetCredDef(s.ServerClient, schemaId)
 
 	if err != nil {
 		if err.Error() == "empty" {
+			log.InfoLogger("No previously created credential definition found. Issuing a new one")
+
 			s.CredDefinitionId, err = agents.CreateCredDef(s.ServerClient, schemaId)
 			if err != nil {
 				log.FatalLogger(err)
