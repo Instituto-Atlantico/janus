@@ -18,23 +18,23 @@ import (
 )
 
 type Device struct {
-	Client         *acapy.Client
-	ConnectionID   string
-	BrokerUsername string
+	Client            *acapy.Client
+	ConnectionID      string
+	BrokerCredentials mqtt_pub.BrokerCredentials
 }
 
 type Service struct {
 	ServerClient     *acapy.Client
 	Agents           map[string]*Device
 	CredDefinitionId string
-	Broker           mqtt_pub.BrokerData
+	BrokerIp         string
 }
 
 var AllowedPermissions = []string{
 	"temperature", "humidity",
 }
 
-func (s *Service) Init(serverAgentIp string) {
+func (s *Service) Init(serverAgentIp, brokerIp string) {
 	var err error
 
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
@@ -60,6 +60,8 @@ func (s *Service) Init(serverAgentIp string) {
 	}
 
 	log.Println("CredDefinitionID: ", s.CredDefinitionId)
+
+	s.BrokerIp = brokerIp
 
 	s.Agents = make(map[string]*Device)
 }
@@ -123,8 +125,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 				// send sensor data to Dojot upon presentation proof
 				fmt.Println("Publishing message to Dojot...")
-				publicationTopic := fmt.Sprintf("%s/attrs", agentClient.BrokerUsername)
-				mqtt_pub.PublishMessage(s.Broker, agentClient.BrokerUsername, publicationTopic, validatedData)
+				mqtt_pub.PublishMessage(s.BrokerIp, agentClient.BrokerCredentials, validatedData)
 			}
 		}
 	}()
@@ -150,6 +151,25 @@ func (s *Service) RunApi(port string) {
 			return
 		}
 
+		//create device object
+		device := Device{}
+
+		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
+		device.Client = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
+
+		device.BrokerCredentials = mqtt_pub.BrokerCredentials{
+			Username: provisionBody.BrokerUsername,
+			Password: provisionBody.BrokerPassword,
+		}
+
+		_, err = device.Client.Status()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Println("Device agent is not running properly")
+			return
+		}
+
+		// Parse Permissions to credential previews
 		permissionList := make([]acapy.CredentialPreviewAttributeV2, 0)
 
 		for _, sensorType := range AllowedPermissions {
@@ -167,21 +187,8 @@ func (s *Service) RunApi(port string) {
 
 		fmt.Println(permissionList)
 
-		device := Device{}
-
-		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
-		device.Client = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
-		device.BrokerUsername = provisionBody.BrokerUsername
-
-		s.Broker = mqtt_pub.BrokerData{
-			BrokerServerIp: provisionBody.BrokerServerIp,
-			BrokerPassword: provisionBody.BrokerPassword,
-		}
-
 		go func() {
-			helper.TryUntilNoError(device.Client.Status, 600) //check if agent is already up and running
 			log.Println("\nChanging invitation for agent ", ip)
-
 			invitationID, _, _ := agents.ChangeInvitations(s.ServerClient, device.Client)
 			device.ConnectionID = invitationID
 

@@ -10,12 +10,14 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-type BrokerData struct {
-	BrokerServerIp string
-	BrokerPassword string
+type BrokerCredentials struct {
+	Username string
+	Password string
 }
 
-func PublishMessage(brokerData BrokerData, brokerUsername, publicationTopic string, sensorData map[string]any) {
+func PublishMessage(brokerIp string, credentals BrokerCredentials, sensorData map[string]any) {
+	publicationTopic := fmt.Sprintf("%s/attrs", credentals.Username)
+
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 		fmt.Printf("TOPIC: %s\n", msg.Topic())
 		fmt.Printf("MSG: %s\n", msg.Payload())
@@ -23,12 +25,12 @@ func PublishMessage(brokerData BrokerData, brokerUsername, publicationTopic stri
 
 	mqtt.DEBUG = log.New(os.Stdout, "", 0)
 	mqtt.ERROR = log.New(os.Stdout, "", 0)
-	opts := mqtt.NewClientOptions().AddBroker(brokerData.BrokerServerIp + ":1883").SetClientID("dojot")
+	opts := mqtt.NewClientOptions().AddBroker(brokerIp + ":1883").SetClientID("dojot")
 
 	// Set username
-	opts.SetUsername(brokerUsername)
+	opts.SetUsername(credentals.Username)
 	// Set password
-	opts.SetPassword(brokerData.BrokerPassword)
+	opts.SetPassword(credentals.Password)
 	opts.SetKeepAlive(60 * time.Second)
 	// Set the message callback handler
 	opts.SetDefaultPublishHandler(f)

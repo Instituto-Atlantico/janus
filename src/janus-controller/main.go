@@ -10,14 +10,16 @@ import (
 
 var (
 	serverAgentIp string
+	brokerIp      string
 	port          string
 	collectorTime int
 )
 
 func handleFlags() {
 	flag.StringVar(&serverAgentIp, "server-agent-ip", "", "")
-	flag.StringVar(&port, "port", "8080", "")
-	flag.IntVar(&collectorTime, "collector-time", 30, "")
+	flag.StringVar(&brokerIp, "broker-ip", "localhost", "The ip the broker is running")
+	flag.StringVar(&port, "port", "8080", "The port the controller api will run")
+	flag.IntVar(&collectorTime, "collector-time", 30, "The time between sensor collections")
 	flag.Parse()
 
 	if serverAgentIp == "" {
@@ -29,7 +31,7 @@ func main() {
 	handleFlags()
 
 	service := service.Service{}
-	service.Init(serverAgentIp)
+	service.Init(serverAgentIp, brokerIp)
 	service.RunCollector(collectorTime)
 	service.RunApi(port)
 }
