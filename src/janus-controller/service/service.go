@@ -100,7 +100,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 						return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
 					}, 20)
 					if err != nil {
-						log.InfoLogger("Timeout presentation done")
+						log.ErrorLogger("Agent %s: Timeout presentation done", agentIP)
 
 						return
 					}
@@ -197,10 +197,10 @@ func (s *Service) RunApi(port string) {
 
 			time.Sleep(5 * time.Second)
 
-			log.InfoLogger("Agent %s: Getting credential...", ip)
+			log.InfoLogger("Agent %s: Looking for a valid credential", ip)
 			cred, err := agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId) //issue new credential only if no previous created
 			if err != nil && err.Error() == "empty" {
-				log.InfoLogger("Agent %s: Issuing credential", ip)
+				log.InfoLogger("Agent %s: No previously created credential found. Issuing a new credential", ip)
 
 				agents.IssueCredential(s.ServerClient, s.CredDefinitionId, device.ConnectionID, permissionList)
 				cred, err = helper.TryUntilNoError(func() (acapy.Credential, error) {
@@ -208,7 +208,7 @@ func (s *Service) RunApi(port string) {
 				}, 20)
 
 				if err != nil {
-					log.InfoLogger("Timeout on agents.GetCredential")
+					log.ErrorLogger("Agent %s: Timeout getting a credential", ip)
 				}
 			}
 
@@ -228,6 +228,6 @@ func (s *Service) RunApi(port string) {
 	log.InfoLogger("Server listening on port %s", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
-		log.ErrorLogger("Server listing: %s", err)
+		log.ErrorLogger("Server listening: %s", err)
 	}
 }
