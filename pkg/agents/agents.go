@@ -23,7 +23,6 @@ func parseInvitation(invitation any) acapy.Invitation {
 func ChangeInvitations(issuer, holder *acapy.Client) (string, string, error) {
 	invitationResponse, err := issuer.CreateInvitation("createdByCode", true, false, false)
 	if err != nil {
-		log.Println(err)
 		return "", "", err
 	}
 
@@ -32,7 +31,6 @@ func ChangeInvitations(issuer, holder *acapy.Client) (string, string, error) {
 	time.Sleep(time.Second)
 	connection, err := holder.ReceiveInvitation(parsedInvitation, true)
 	if err != nil {
-		log.Println(err)
 		return "", "", err
 	}
 

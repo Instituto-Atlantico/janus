@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -187,9 +188,16 @@ func (s *Service) RunApi(port string) {
 
 		fmt.Println(permissionList)
 
+		b, _ := json.Marshal(provisionBody)
+		fmt.Fprint(w, string(b))
+
 		go func() {
 			log.Println("\nChanging invitation for agent ", ip)
-			invitationID, _, _ := agents.ChangeInvitations(s.ServerClient, device.Client)
+			invitationID, _, err := agents.ChangeInvitations(s.ServerClient, device.Client)
+			if err != nil {
+				log.Println(err)
+				runtime.Goexit() //interrupts the current routine
+			}
 			device.ConnectionID = invitationID
 
 			time.Sleep(5 * time.Second)
@@ -201,9 +209,9 @@ func (s *Service) RunApi(port string) {
 				cred, err = helper.TryUntilNoError(func() (acapy.Credential, error) {
 					return agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId)
 				}, 20)
-
 				if err != nil {
 					log.Println("Timeout on agents.GetCredential")
+					runtime.Goexit() //interrupts the current routine
 				}
 			}
 
@@ -211,9 +219,6 @@ func (s *Service) RunApi(port string) {
 
 			s.Agents[ip] = &device
 		}()
-
-		b, _ := json.Marshal(provisionBody)
-		fmt.Fprint(w, string(b))
 	})
 
 	http.HandleFunc("/agents", func(w http.ResponseWriter, r *http.Request) {
