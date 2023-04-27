@@ -21,19 +21,23 @@ func InfoLogger(format string, v ...any) {
 }
 
 func WarnLogger(v ...any) {
-	logger := log.New(os.Stdout, "WARN ", goodFlag)
+	WarnLogger := log.New(os.Stdout, "WARN ", goodFlag)
 
-	logger.Println(v...)
+	WarnLogger.Println(v...)
 }
 
-func ErrorLogger(v ...any) {
-	logger := log.New(os.Stdout, "ERROR ", badFlags)
+func ErrorLogger(format string, v ...any) {
+	ErrorLogger := log.New(os.Stderr, "ERROR ", badFlags)
 
-	logger.Println(v...)
+	if format == "" {
+		ErrorLogger.Println(v...)
+	}
+
+	ErrorLogger.Printf(format, v...)
 }
 
 func FatalLogger(v ...any) {
-	logger := log.New(os.Stdout, "FATAL ", badFlags)
+	FatalLogger := log.New(os.Stdout, "FATAL ", badFlags)
 
-	logger.Fatal(v...)
+	FatalLogger.Fatal(v...)
 }

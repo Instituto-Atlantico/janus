@@ -70,6 +70,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 			ips := reflect.ValueOf(s.Agents).MapKeys()
 			if len(ips) > 0 {
 				log.InfoLogger("Getting sensor data for...")
+
 				agentIP := ips[0]
 				agentClient := s.Agents[agentIP.String()]
 
@@ -87,7 +88,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
 					if err != nil {
-						//log.Println(err)
+						log.ErrorLogger("Get device credential: %s ", err)
 
 						return
 					}
@@ -107,7 +108,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					// if presentation is valid store value
 					result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
 					if err != nil {
-						//log.Println(err)
+						log.ErrorLogger("Verify presentation proof: %s ", err)
 
 						return
 					}
@@ -187,7 +188,9 @@ func (s *Service) RunApi(port string) {
 			invitationID, _, err := agents.ChangeInvitations(s.ServerClient, device.Client)
 			device.ConnectionID = invitationID
 			if err != nil {
-				log.InfoLogger("Agent %s: %s", ip, err)
+				log.ErrorLogger("Agent %s: %s", ip, err)
+
+				return
 			}
 
 			log.InfoLogger("Agent %s: Invitation accepted with ID %s", ip, invitationID)
@@ -225,6 +228,6 @@ func (s *Service) RunApi(port string) {
 	log.InfoLogger("Server listening on port %s", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
-		//log.Println(err)
+		log.ErrorLogger("Server listing: %s", err)
 	}
 }
