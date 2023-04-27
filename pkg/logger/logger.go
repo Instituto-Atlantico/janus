@@ -6,12 +6,11 @@ import (
 )
 
 var (
-	goodFlag = log.LstdFlags
-	badFlags = log.LstdFlags | log.Lshortfile
+	logFlag = log.LstdFlags
 )
 
 func InfoLogger(format string, v ...any) {
-	InfoLogger := log.New(os.Stdout, "INFO ", goodFlag)
+	InfoLogger := log.New(os.Stdout, "INFO ", logFlag)
 
 	if format == "" {
 		InfoLogger.Println(v...)
@@ -21,13 +20,13 @@ func InfoLogger(format string, v ...any) {
 }
 
 func WarnLogger(v ...any) {
-	WarnLogger := log.New(os.Stdout, "WARN ", goodFlag)
+	WarnLogger := log.New(os.Stdout, "WARN ", logFlag)
 
 	WarnLogger.Println(v...)
 }
 
 func ErrorLogger(format string, v ...any) {
-	ErrorLogger := log.New(os.Stderr, "ERROR ", badFlags)
+	ErrorLogger := log.New(os.Stderr, "ERROR ", logFlag)
 
 	if format == "" {
 		ErrorLogger.Println(v...)
@@ -37,7 +36,7 @@ func ErrorLogger(format string, v ...any) {
 }
 
 func FatalLogger(v ...any) {
-	FatalLogger := log.New(os.Stdout, "FATAL ", badFlags)
+	FatalLogger := log.New(os.Stdout, "FATAL ", logFlag)
 
 	FatalLogger.Fatal(v...)
 }
