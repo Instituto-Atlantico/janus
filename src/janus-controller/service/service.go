@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -15,6 +14,8 @@ import (
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/Instituto-Atlantico/janus/pkg/mqtt_pub"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
+
+	log "github.com/Instituto-Atlantico/janus/pkg/logger"
 )
 
 type Device struct {
@@ -49,14 +50,14 @@ func (s *Service) Init(serverAgentIp string) {
 		if err.Error() == "empty" {
 			s.CredDefinitionId, err = agents.CreateCredDef(s.ServerClient, schemaId)
 			if err != nil {
-				log.Fatal(err)
+				log.FatalLogger(err)
 			}
 		} else {
-			log.Fatal(err)
+			log.FatalLogger(err)
 		}
 	}
 
-	log.Println("CredDefinitionID: ", s.CredDefinitionId)
+	log.InfoLogger("CredDefinitionID: %s", s.CredDefinitionId)
 
 	s.Agents = make(map[string]*Device)
 }
@@ -68,7 +69,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 		for range ticker.C {
 			ips := reflect.ValueOf(s.Agents).MapKeys()
 			if len(ips) > 0 {
-				fmt.Println("Getting sensors data")
+				log.InfoLogger("Getting sensor data for...")
 				agentIP := ips[0]
 				agentClient := s.Agents[agentIP.String()]
 
@@ -77,7 +78,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 				validatedData := make(map[string]any)
 
 				for name, value := range sensorData {
-					fmt.Printf("Sensor [%s] has Value [%s]\n", name, value)
+					log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
 
 					// request presentation proof for name
 					presentationRequest, _ := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
@@ -86,7 +87,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
 					if err != nil {
-						log.Println(err)
+						//log.Println(err)
 
 						return
 					}
@@ -98,7 +99,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 						return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
 					}, 20)
 					if err != nil {
-						log.Println("Timeout presentation done")
+						log.InfoLogger("Timeout presentation done")
 
 						return
 					}
@@ -106,7 +107,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					// if presentation is valid store value
 					result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
 					if err != nil {
-						log.Println(err)
+						//log.Println(err)
 
 						return
 					}
@@ -114,12 +115,14 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					if result.Verified == "true" {
 						validatedData[name] = value
 					}
+
 				}
 
-				fmt.Println("Validate data:", validatedData)
+				log.InfoLogger("Agent %s: Validating device sensors permissions...", agentIP)
+				log.InfoLogger("Agent %s: Allowed sensor data %s", agentIP, validatedData)
 
 				// send sensor data to Dojot upon presentation proof
-				fmt.Println("Publishing message to Dojot...")
+				log.InfoLogger("Agent %s: Publishing message to Dojot...", agentIP)
 				publicationTopic := fmt.Sprintf("%s/attrs", agentClient.BrokerUsername)
 				mqtt_pub.PublishMessage(s.Broker, agentClient.BrokerUsername, publicationTopic, validatedData)
 			}
@@ -147,6 +150,8 @@ func (s *Service) RunApi(port string) {
 			return
 		}
 
+		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
+
 		permissionList := make([]acapy.CredentialPreviewAttributeV2, 0)
 
 		for _, sensorType := range AllowedPermissions {
@@ -162,11 +167,10 @@ func (s *Service) RunApi(port string) {
 			permissionList = append(permissionList, permission)
 		}
 
-		fmt.Println(permissionList)
+		log.InfoLogger("Agent %s: Device permission list %s", ip, permissionList)
 
 		device := Device{}
 
-		ip := strings.Split(provisionBody.DeviceHostName, "@")[1]
 		device.Client = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
 		device.BrokerUsername = provisionBody.BrokerUsername
 
@@ -176,28 +180,36 @@ func (s *Service) RunApi(port string) {
 		}
 
 		go func() {
-			helper.TryUntilNoError(device.Client.Status, 600) //check if agent is already up and running
-			log.Println("\nChanging invitation for agent ", ip)
+			helper.TryUntilNoError(device.Client.Status, 30) //check if agent is already up and running
 
-			invitationID, _, _ := agents.ChangeInvitations(s.ServerClient, device.Client)
+			log.InfoLogger("Agent %s: Exchanging invitation...", ip)
+
+			invitationID, _, err := agents.ChangeInvitations(s.ServerClient, device.Client)
 			device.ConnectionID = invitationID
+			if err != nil {
+				log.InfoLogger("Agent %s: %s", ip, err)
+			}
+
+			log.InfoLogger("Agent %s: Invitation accepted with ID %s", ip, invitationID)
 
 			time.Sleep(5 * time.Second)
 
+			log.InfoLogger("Agent %s: Getting credential...", ip)
 			cred, err := agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId) //issue new credential only if no previous created
 			if err != nil && err.Error() == "empty" {
-				log.Println("\nIssuing credential for agent ", ip)
+				log.InfoLogger("Agent %s: Issuing credential", ip)
+
 				agents.IssueCredential(s.ServerClient, s.CredDefinitionId, device.ConnectionID, permissionList)
 				cred, err = helper.TryUntilNoError(func() (acapy.Credential, error) {
 					return agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId)
 				}, 20)
 
 				if err != nil {
-					log.Println("Timeout on agents.GetCredential")
+					log.InfoLogger("Timeout on agents.GetCredential")
 				}
 			}
 
-			log.Println("Device`s cred: ", cred)
+			log.InfoLogger("Agent %s: Device credential %s ", ip, cred)
 
 			s.Agents[ip] = &device
 		}()
@@ -210,9 +222,9 @@ func (s *Service) RunApi(port string) {
 		fmt.Fprint(w, reflect.ValueOf(s.Agents).MapKeys())
 	})
 
-	log.Println("Server listening on port ", port)
+	log.InfoLogger("Server listening on port %s", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 	}
 }

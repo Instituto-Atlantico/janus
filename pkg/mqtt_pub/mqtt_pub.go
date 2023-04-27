@@ -2,7 +2,6 @@ package mqtt_pub
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -17,8 +16,8 @@ type BrokerData struct {
 
 func PublishMessage(brokerData BrokerData, brokerUsername, publicationTopic string, sensorData map[string]any) {
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-		fmt.Printf("TOPIC: %s\n", msg.Topic())
-		fmt.Printf("MSG: %s\n", msg.Payload())
+		log.Printf("TOPIC: %s\n", msg.Topic())
+		log.Printf("MSG: %s\n", msg.Payload())
 	}
 
 	mqtt.DEBUG = log.New(os.Stdout, "", 0)
