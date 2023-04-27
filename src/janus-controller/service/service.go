@@ -44,6 +44,7 @@ func (s *Service) Init(serverAgentIp string) {
 	helper.TryUntilNoError(s.ServerClient.Status, 600)
 
 	// create cred definition
+	log.InfoLogger("Issuing credential definition")
 	s.CredDefinitionId, err = agents.GetCredDef(s.ServerClient, schemaId)
 
 	if err != nil {
@@ -57,7 +58,7 @@ func (s *Service) Init(serverAgentIp string) {
 		}
 	}
 
-	log.InfoLogger("CredDefinitionID: %s", s.CredDefinitionId)
+	log.InfoLogger("Credential definition created with ID: %s", s.CredDefinitionId)
 
 	s.Agents = make(map[string]*Device)
 }
