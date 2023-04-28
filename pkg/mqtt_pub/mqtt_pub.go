@@ -28,7 +28,7 @@ func PublishMessage(brokerIp string, credentials BrokerCredentials, sensorData m
 	opts := mqtt.NewClientOptions().AddBroker(brokerIp + ":1883").SetClientID("dojot")
 
 	// Set username
-	opts.SetUsername(credentals.Username)
+	opts.SetUsername(credentials.Username)
 	// Set password
 	opts.SetPassword(credentials.Password)
 	opts.SetKeepAlive(60 * time.Second)
