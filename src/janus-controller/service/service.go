@@ -41,7 +41,10 @@ func (s *Service) Init(serverAgentIp string) {
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
 
 	s.ServerClient = acapy.NewClient(fmt.Sprintf("http://%s:8002", serverAgentIp))
-	helper.TryUntilNoError(s.ServerClient.Status, 600)
+	_, err = helper.TryUntilNoError(s.ServerClient.Status, 20)
+	if err != nil {
+		log.FatalLogger("Timeout when trying to connect with issuer aca-py agent")
+	}
 
 	// create cred definition
 	log.InfoLogger("Looking for a valid credential definition")
