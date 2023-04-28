@@ -79,12 +79,16 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 		for range ticker.C {
 			ips := reflect.ValueOf(s.Agents).MapKeys()
 			if len(ips) > 0 {
-				log.InfoLogger("Getting sensor data for...")
 
-				agentIP := ips[0]
+				agentIP := ips[0] // pendind multidevice in parallel
 				agentClient := s.Agents[agentIP.String()]
+				log.InfoLogger("Agent %s: error collecting sensor data", agentIP)
 
-				sensorData := sensors.CollectSensorData(agentIP.String(), "5000")
+				sensorData, err := sensors.CollectSensorData(agentIP.String(), "5000")
+				if err != nil {
+					log.ErrorLogger("Agent %s: error collecting sensor data: %s", agentIP, err)
+					continue
+				}
 
 				validatedData := make(map[string]any)
 
@@ -92,15 +96,18 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
 
 					// request presentation proof for name
-					presentationRequest, _ := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
+					presentationRequest, err := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
+					if err != nil {
+						log.ErrorLogger("Agent %s: error creating presentation request for sensor %s: %s", agentIP, name, err)
+						continue
+					}
 
 					time.Sleep(2 * time.Second)
 
 					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
 					if err != nil {
-						log.ErrorLogger("Get device credential: %s ", err)
-
-						return
+						log.ErrorLogger("Agent %s: error getting device credential: %s", agentIP, err)
+						continue
 					}
 
 					agents.SendPresentationByID(agentClient.Client, presentationRequest, credential)
@@ -110,17 +117,16 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 						return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
 					}, 20)
 					if err != nil {
-						log.ErrorLogger("Agent %s: Timeout presentation done", agentIP)
-
-						return
+						log.ErrorLogger("Agent %s: Timeout waiting for presentation done", agentIP)
+						continue
 					}
 
 					// if presentation is valid store value
+					log.InfoLogger("Agent %s: Validating device sensors permissions", agentIP)
 					result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
 					if err != nil {
-						log.ErrorLogger("Verify presentation proof: %s ", err)
-
-						return
+						log.ErrorLogger("Agent %s: error verifying presentation proof: %s", agentIP, err)
+						continue
 					}
 
 					if result.Verified == "true" {
@@ -128,13 +134,15 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					}
 
 				}
-
-				log.InfoLogger("Agent %s: Validating device sensors permissions...", agentIP)
 				log.InfoLogger("Agent %s: Allowed sensor data %s", agentIP, validatedData)
 
 				// send sensor data to Dojot upon presentation proof
 				log.InfoLogger("Agent %s: Publishing message to Dojot", agentIP)
-				mqtt_pub.PublishMessage(s.BrokerIp, agentClient.BrokerCredentials, validatedData)
+				err = mqtt_pub.PublishMessage(s.BrokerIp, agentClient.BrokerCredentials, validatedData)
+				if err != nil {
+					log.ErrorLogger("Agent %s: error publishing message to mqtt Broker: %s", agentIP, err)
+					continue
+				}
 			}
 		}
 	}()
@@ -174,7 +182,7 @@ func (s *Service) RunApi(port string) {
 		_, err = device.Client.Status()
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Println("Device agent is not running properly")
+			log.ErrorLogger("Device agent is not running properly")
 			return
 		}
 

@@ -15,7 +15,7 @@ type BrokerCredentials struct {
 	Password string
 }
 
-func PublishMessage(brokerIp string, credentals BrokerCredentials, sensorData map[string]any) {
+func PublishMessage(brokerIp string, credentals BrokerCredentials, sensorData map[string]any) error {
 	publicationTopic := fmt.Sprintf("%s/attrs", credentals.Username)
 
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -39,12 +39,12 @@ func PublishMessage(brokerIp string, credentals BrokerCredentials, sensorData ma
 
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		log.Println(token.Error())
+		return token.Error()
 	}
 
 	parsedSensorData, err := json.Marshal(sensorData)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	// Publish a message
@@ -56,4 +56,6 @@ func PublishMessage(brokerIp string, credentals BrokerCredentials, sensorData ma
 	// Disconnect
 	client.Disconnect(250)
 	time.Sleep(1 * time.Second)
+
+	return nil
 }
