@@ -30,7 +30,7 @@ func PublishMessage(brokerIp string, credentials BrokerCredentials, sensorData m
 	// Set username
 	opts.SetUsername(credentals.Username)
 	// Set password
-	opts.SetPassword(credentals.Password)
+	opts.SetPassword(credentials.Password)
 	opts.SetKeepAlive(60 * time.Second)
 	// Set the message callback handler
 	opts.SetDefaultPublishHandler(f)
