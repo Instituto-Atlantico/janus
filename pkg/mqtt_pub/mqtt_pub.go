@@ -15,7 +15,7 @@ type BrokerCredentials struct {
 	Password string
 }
 
-func PublishMessage(brokerIp string, credentals BrokerCredentials, sensorData map[string]any) error {
+func PublishMessage(brokerIp string, credentials BrokerCredentials, sensorData map[string]any) error {
 	publicationTopic := fmt.Sprintf("%s/attrs", credentals.Username)
 
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
