@@ -43,7 +43,7 @@ func InstantiateAgent(agent ComposeInfo, hostName, profile string) error {
 
 	// append the rest of the command
 	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p janus-%s up -d --no-recreate", profile, profile)
-	logger.InfoLogger("Executing command %s", command)
+	logger.InfoLogger("Executing the %s command", command)
 
 	//parse the command to a []string format and pass it to a CMD
 	parsedCommand := helper.ParseCommand(command)
