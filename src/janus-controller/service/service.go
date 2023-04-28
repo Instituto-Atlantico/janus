@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -16,6 +15,8 @@ import (
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/Instituto-Atlantico/janus/pkg/mqtt_pub"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
+
+	log "github.com/Instituto-Atlantico/janus/pkg/logger"
 )
 
 type Device struct {
@@ -43,24 +44,28 @@ func (s *Service) Init(serverAgentIp, brokerIp string) {
 	s.ServerClient = acapy.NewClient(fmt.Sprintf("http://%s:8002", serverAgentIp))
 	_, err = helper.TryUntilNoError(s.ServerClient.Status, 20)
 	if err != nil {
-		log.Fatal("Timeout when trying to connect with issuer aca-py agent")
+		log.FatalLogger("Timeout when trying to connect with issuer aca-py agent")
 	}
 
 	// create cred definition
+	log.InfoLogger("Looking for a valid credential definition")
+
 	s.CredDefinitionId, err = agents.GetCredDef(s.ServerClient, schemaId)
 
 	if err != nil {
 		if err.Error() == "empty" {
+			log.InfoLogger("No previously created credential definition found. Issuing a new one")
+
 			s.CredDefinitionId, err = agents.CreateCredDef(s.ServerClient, schemaId)
 			if err != nil {
-				log.Fatal(err)
+				log.FatalLogger(err)
 			}
 		} else {
-			log.Fatal(err)
+			log.FatalLogger(err)
 		}
 	}
 
-	log.Println("CredDefinitionID: ", s.CredDefinitionId)
+	log.InfoLogger("Credential definition created with ID: %s", s.CredDefinitionId)
 
 	s.BrokerIp = brokerIp
 
@@ -74,7 +79,8 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 		for range ticker.C {
 			ips := reflect.ValueOf(s.Agents).MapKeys()
 			if len(ips) > 0 {
-				fmt.Println("Getting sensors data")
+				log.InfoLogger("Getting sensor data for...")
+
 				agentIP := ips[0]
 				agentClient := s.Agents[agentIP.String()]
 
@@ -83,7 +89,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 				validatedData := make(map[string]any)
 
 				for name, value := range sensorData {
-					fmt.Printf("Sensor [%s] has Value [%s]\n", name, value)
+					log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
 
 					// request presentation proof for name
 					presentationRequest, _ := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
@@ -92,7 +98,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
 					if err != nil {
-						log.Println(err)
+						log.ErrorLogger("Get device credential: %s ", err)
 
 						return
 					}
@@ -104,7 +110,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 						return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
 					}, 20)
 					if err != nil {
-						log.Println("Timeout presentation done")
+						log.ErrorLogger("Agent %s: Timeout presentation done", agentIP)
 
 						return
 					}
@@ -112,7 +118,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					// if presentation is valid store value
 					result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
 					if err != nil {
-						log.Println(err)
+						log.ErrorLogger("Verify presentation proof: %s ", err)
 
 						return
 					}
@@ -120,12 +126,14 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					if result.Verified == "true" {
 						validatedData[name] = value
 					}
+
 				}
 
-				fmt.Println("Validate data:", validatedData)
+				log.InfoLogger("Agent %s: Validating device sensors permissions...", agentIP)
+				log.InfoLogger("Agent %s: Allowed sensor data %s", agentIP, validatedData)
 
 				// send sensor data to Dojot upon presentation proof
-				fmt.Println("Publishing message to Dojot...")
+				log.InfoLogger("Agent %s: Publishing message to Dojot", agentIP)
 				mqtt_pub.PublishMessage(s.BrokerIp, agentClient.BrokerCredentials, validatedData)
 			}
 		}
@@ -186,36 +194,44 @@ func (s *Service) RunApi(port string) {
 			permissionList = append(permissionList, permission)
 		}
 
-		fmt.Println(permissionList)
+		log.InfoLogger("Agent %s: Device permission list %s", ip, permissionList)
 
 		b, _ := json.Marshal(provisionBody)
 		fmt.Fprint(w, string(b))
 
 		go func() {
-			log.Println("\nChanging invitation for agent ", ip)
+			log.InfoLogger("Agent %s: Exchanging invitation...", ip)
 			invitationID, _, err := agents.ChangeInvitations(s.ServerClient, device.Client)
 			if err != nil {
-				log.Println(err)
+				log.ErrorLogger("Agent %s: %s", ip, err)
 				runtime.Goexit() //interrupts the current routine
 			}
 			device.ConnectionID = invitationID
+			if err != nil {
+				log.ErrorLogger("Agent %s: %s", ip, err)
+				runtime.Goexit() //interrupts the current routine
+			}
+
+			log.InfoLogger("Agent %s: Invitation accepted with ID %s", ip, invitationID)
 
 			time.Sleep(5 * time.Second)
 
+			log.InfoLogger("Agent %s: Looking for a valid credential", ip)
 			cred, err := agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId) //issue new credential only if no previous created
 			if err != nil && err.Error() == "empty" {
-				log.Println("\nIssuing credential for agent ", ip)
+				log.InfoLogger("Agent %s: No previously created credential found. Issuing a new credential", ip)
+
 				agents.IssueCredential(s.ServerClient, s.CredDefinitionId, device.ConnectionID, permissionList)
 				cred, err = helper.TryUntilNoError(func() (acapy.Credential, error) {
 					return agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId)
 				}, 20)
 				if err != nil {
-					log.Println("Timeout on agents.GetCredential")
+					log.ErrorLogger("Agent %s: Timeout getting a credential", ip)
 					runtime.Goexit() //interrupts the current routine
 				}
 			}
 
-			log.Println("Device`s cred: ", cred)
+			log.InfoLogger("Agent %s: Device credential %s ", ip, cred)
 
 			s.Agents[ip] = &device
 		}()
@@ -225,9 +241,9 @@ func (s *Service) RunApi(port string) {
 		fmt.Fprint(w, reflect.ValueOf(s.Agents).MapKeys())
 	})
 
-	log.Println("Server listening on port ", port)
+	log.InfoLogger("Server listening on port %s", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
-		log.Fatal(err)
+		log.ErrorLogger("Server listening: %s", err)
 	}
 }

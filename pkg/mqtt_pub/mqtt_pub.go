@@ -19,8 +19,8 @@ func PublishMessage(brokerIp string, credentals BrokerCredentials, sensorData ma
 	publicationTopic := fmt.Sprintf("%s/attrs", credentals.Username)
 
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-		fmt.Printf("TOPIC: %s\n", msg.Topic())
-		fmt.Printf("MSG: %s\n", msg.Payload())
+		log.Printf("TOPIC: %s\n", msg.Topic())
+		log.Printf("MSG: %s\n", msg.Payload())
 	}
 
 	mqtt.DEBUG = log.New(os.Stdout, "", 0)
