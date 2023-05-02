@@ -76,71 +76,71 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 		for range ticker.C {
 			ips := reflect.ValueOf(s.Agents).MapKeys()
 			if len(ips) > 0 {
+				for _, ip := range ips {
+					agentIP := ip.String()
+					agentClient := s.Agents[agentIP]
+					go func(agentIP string, agentClient *Device) {
+						log.InfoLogger("Agent %s: collecting sensor data", agentIP)
+						sensorData, err := sensors.CollectSensorData(agentIP, "5000")
+						if err != nil {
+							log.ErrorLogger("Agent %s: error collecting sensor data: %s", agentIP, err)
+							runtime.Goexit() //interrupts the current routine
+						}
+						validatedData := make(map[string]any)
+						for name, value := range sensorData {
+							log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
 
-				agentIP := ips[0] // pendind multidevice in parallel
-				agentClient := s.Agents[agentIP.String()]
-				log.InfoLogger("Agent %s: collecting sensor data", agentIP)
+							// request presentation proof for name
+							presentationRequest, err := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
+							if err != nil {
+								log.ErrorLogger("Agent %s: error creating presentation request for sensor %s: %s", agentIP, name, err)
+								continue
+							}
 
-				sensorData, err := sensors.CollectSensorData(agentIP.String(), "5000")
-				if err != nil {
-					log.ErrorLogger("Agent %s: error collecting sensor data: %s", agentIP, err)
-					continue
+							time.Sleep(2 * time.Second)
+
+							credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
+							if err != nil {
+								log.ErrorLogger("Agent %s: error getting device credential: %s", agentIP, err)
+								continue
+							}
+
+							agents.SendPresentationByID(agentClient.Client, presentationRequest, credential)
+
+							// wait for presentation to be ready
+							_, err = helper.TryUntilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
+								return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
+							}, 20)
+							if err != nil {
+								log.ErrorLogger("Agent %s: Timeout waiting for presentation done", agentIP)
+								continue
+							}
+
+							// if presentation is valid store value
+							log.InfoLogger("Agent %s: Validating device sensors permissions", agentIP)
+							result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
+							if err != nil {
+								log.ErrorLogger("Agent %s: error verifying presentation proof: %s", agentIP, err)
+								continue
+							}
+
+							if result.Verified == "true" {
+								validatedData[name] = value
+							}
+
+						}
+						log.InfoLogger("Agent %s: Allowed sensor data %s", agentIP, validatedData)
+
+						// send sensor data to Dojot upon presentation proof
+						log.InfoLogger("Agent %s: Publishing message to Dojot", agentIP)
+						err = mqtt_pub.PublishMessage(agentClient.BrokerCredentials, validatedData)
+						if err != nil {
+							log.ErrorLogger("Agent %s: error publishing message to mqtt Broker: %s", agentIP, err)
+						} else {
+							log.InfoLogger("Agent %s: message sent to Dojot", agentIP)
+						}
+					}(agentIP, agentClient)
 				}
-
-				validatedData := make(map[string]any)
-
-				for name, value := range sensorData {
-					log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
-
-					// request presentation proof for name
-					presentationRequest, err := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
-					if err != nil {
-						log.ErrorLogger("Agent %s: error creating presentation request for sensor %s: %s", agentIP, name, err)
-						continue
-					}
-
-					time.Sleep(2 * time.Second)
-
-					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
-					if err != nil {
-						log.ErrorLogger("Agent %s: error getting device credential: %s", agentIP, err)
-						continue
-					}
-
-					agents.SendPresentationByID(agentClient.Client, presentationRequest, credential)
-
-					// wait for presentation to be ready
-					_, err = helper.TryUntilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
-						return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
-					}, 20)
-					if err != nil {
-						log.ErrorLogger("Agent %s: Timeout waiting for presentation done", agentIP)
-						continue
-					}
-
-					// if presentation is valid store value
-					log.InfoLogger("Agent %s: Validating device sensors permissions", agentIP)
-					result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
-					if err != nil {
-						log.ErrorLogger("Agent %s: error verifying presentation proof: %s", agentIP, err)
-						continue
-					}
-
-					if result.Verified == "true" {
-						validatedData[name] = value
-					}
-
-				}
-				log.InfoLogger("Agent %s: Allowed sensor data %s", agentIP, validatedData)
-
-				// send sensor data to Dojot upon presentation proof
-				log.InfoLogger("Agent %s: Publishing message to Dojot", agentIP)
-				err = mqtt_pub.PublishMessage(agentClient.BrokerCredentials, validatedData)
-				if err != nil {
-					log.ErrorLogger("Agent %s: error publishing message to mqtt Broker: %s", agentIP, err)
-					continue
-				}
-				log.InfoLogger("Agent %s: message sent to Dojot", agentIP)
 			}
 		}
 	}()
@@ -244,8 +244,24 @@ func (s *Service) RunApi(port string) {
 		}()
 	})
 
-	http.HandleFunc("/agents", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, reflect.ValueOf(s.Agents).MapKeys())
+	http.HandleFunc("/agents/", func(w http.ResponseWriter, r *http.Request) {
+
+		switch r.Method {
+		case http.MethodGet:
+			fmt.Fprint(w, reflect.ValueOf(s.Agents).MapKeys())
+		case http.MethodDelete:
+			ip := strings.TrimPrefix(r.URL.Path, "/agents/")
+			fmt.Println(ip)
+			if ip == "" {
+				w.WriteHeader(http.StatusUnprocessableEntity)
+				fmt.Fprintf(w, "No agent ip was passed")
+				return
+			}
+
+			fmt.Println(s.Agents)
+			delete(s.Agents, ip)
+			fmt.Println(s.Agents)
+		}
 	})
 
 	log.InfoLogger("Server listening on port %s", port)

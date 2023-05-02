@@ -58,5 +58,8 @@ func PublishMessage(credentials BrokerCredentials, sensorData map[string]any) er
 	client.Disconnect(250)
 	time.Sleep(1 * time.Second)
 
+	if token.Error() != nil {
+		return token.Error()
+	}
 	return nil
 }
