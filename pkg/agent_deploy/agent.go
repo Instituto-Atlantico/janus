@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
+	"github.com/Instituto-Atlantico/janus/pkg/logger"
 )
 
 type ComposeInfo struct {
@@ -42,7 +43,7 @@ func InstantiateAgent(agent ComposeInfo, hostName, profile string) error {
 
 	// append the rest of the command
 	command += fmt.Sprintf("compose -f /tmp/janus/docker-compose.yml --profile %s -p janus-%s up -d --no-recreate", profile, profile)
-	fmt.Println(command)
+	logger.InfoLogger("Executing the %s command", command)
 
 	//parse the command to a []string format and pass it to a CMD
 	parsedCommand := helper.ParseCommand(command)

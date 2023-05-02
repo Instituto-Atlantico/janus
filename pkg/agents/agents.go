@@ -23,7 +23,6 @@ func parseInvitation(invitation any) acapy.Invitation {
 func ChangeInvitations(issuer, holder *acapy.Client) (string, string, error) {
 	invitationResponse, err := issuer.CreateInvitation("createdByCode", true, false, false)
 	if err != nil {
-		log.Println(err)
 		return "", "", err
 	}
 
@@ -32,7 +31,6 @@ func ChangeInvitations(issuer, holder *acapy.Client) (string, string, error) {
 	time.Sleep(time.Second)
 	connection, err := holder.ReceiveInvitation(parsedInvitation, true)
 	if err != nil {
-		log.Println(err)
 		return "", "", err
 	}
 
@@ -42,7 +40,6 @@ func ChangeInvitations(issuer, holder *acapy.Client) (string, string, error) {
 func CreateCredDef(issuer *acapy.Client, schemaId string) (string, error) {
 	credentialDefinition, err := issuer.CreateCredentialDefinition("default", false, 0, schemaId)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 
@@ -54,7 +51,6 @@ func GetCredDef(issuer *acapy.Client, schemaId string) (string, error) {
 		SchemaID: schemaId,
 	})
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 
@@ -70,7 +66,6 @@ func IssueCredential(issuer *acapy.Client, credentialDefinition string, connecti
 
 	_, err := issuer.OfferCredentialV2(connectionId, credentialPreview, credentialDefinition, "Janus Credential")
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
@@ -132,7 +127,7 @@ func CreateRequestPresentationForSensor(issuer *acapy.Client, credentialDefiniti
 
 	sendPresentation, err := issuer.SendPresentationRequest(presentationRequestRequest)
 	if err != nil {
-		log.Fatal(err)
+		return acapy.PresentationExchangeRecord{}, err
 	}
 
 	return sendPresentation, err
