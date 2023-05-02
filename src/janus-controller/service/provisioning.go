@@ -9,7 +9,7 @@ type ProvisionBody struct {
 }
 
 func ProvisionBodyIsValid(body ProvisionBody) bool {
-	if body.DeviceHostName == "" || len(body.Permissions) == 0 || body.BrokerUsername == "" || body.BrokerPassword == "" {
+	if body.DeviceHostName == "" || body.BrokerIp == "" || len(body.Permissions) == 0 || body.BrokerUsername == "" || body.BrokerPassword == "" {
 		return false
 	}
 
