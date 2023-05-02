@@ -29,14 +29,13 @@ type Service struct {
 	ServerClient     *acapy.Client
 	Agents           map[string]*Device
 	CredDefinitionId string
-	BrokerIp         string
 }
 
 var AllowedPermissions = []string{
 	"temperature", "humidity",
 }
 
-func (s *Service) Init(serverAgentIp, brokerIp string) {
+func (s *Service) Init(serverAgentIp string) {
 	var err error
 
 	schemaId := "EZpfyRHcXuohyTvbgsrg7S:2:janus-sensors:1.0"
@@ -67,8 +66,6 @@ func (s *Service) Init(serverAgentIp, brokerIp string) {
 
 	log.InfoLogger("Credential definition created with ID: %s", s.CredDefinitionId)
 
-	s.BrokerIp = brokerIp
-
 	s.Agents = make(map[string]*Device)
 }
 
@@ -82,7 +79,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 				agentIP := ips[0] // pendind multidevice in parallel
 				agentClient := s.Agents[agentIP.String()]
-				log.InfoLogger("Agent %s: error collecting sensor data", agentIP)
+				log.InfoLogger("Agent %s: collecting sensor data", agentIP)
 
 				sensorData, err := sensors.CollectSensorData(agentIP.String(), "5000")
 				if err != nil {
@@ -138,11 +135,12 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 				// send sensor data to Dojot upon presentation proof
 				log.InfoLogger("Agent %s: Publishing message to Dojot", agentIP)
-				err = mqtt_pub.PublishMessage(s.BrokerIp, agentClient.BrokerCredentials, validatedData)
+				err = mqtt_pub.PublishMessage(agentClient.BrokerCredentials, validatedData)
 				if err != nil {
 					log.ErrorLogger("Agent %s: error publishing message to mqtt Broker: %s", agentIP, err)
 					continue
 				}
+				log.InfoLogger("Agent %s: message sent to Dojot", agentIP)
 			}
 		}
 	}()
@@ -175,6 +173,7 @@ func (s *Service) RunApi(port string) {
 		device.Client = acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
 
 		device.BrokerCredentials = mqtt_pub.BrokerCredentials{
+			Ip:       provisionBody.BrokerIp,
 			Username: provisionBody.BrokerUsername,
 			Password: provisionBody.BrokerPassword,
 		}

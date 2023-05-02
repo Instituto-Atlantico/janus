@@ -11,21 +11,22 @@ import (
 )
 
 type BrokerCredentials struct {
+	Ip       string
 	Username string
 	Password string
 }
 
-func PublishMessage(brokerIp string, credentials BrokerCredentials, sensorData map[string]any) error {
-	publicationTopic := fmt.Sprintf("%s/attrs", credentals.Username)
+func PublishMessage(credentials BrokerCredentials, sensorData map[string]any) error {
+	publicationTopic := fmt.Sprintf("%s/attrs", credentials.Username)
 
 	var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 		log.Printf("TOPIC: %s\n", msg.Topic())
 		log.Printf("MSG: %s\n", msg.Payload())
 	}
 
-	mqtt.DEBUG = log.New(os.Stdout, "", 0)
+	// mqtt.DEBUG = log.New(os.Stdout, "", 0)
 	mqtt.ERROR = log.New(os.Stdout, "", 0)
-	opts := mqtt.NewClientOptions().AddBroker(brokerIp + ":1883").SetClientID("dojot")
+	opts := mqtt.NewClientOptions().AddBroker(credentials.Ip + ":1883").SetClientID("dojot")
 
 	// Set username
 	opts.SetUsername(credentials.Username)
