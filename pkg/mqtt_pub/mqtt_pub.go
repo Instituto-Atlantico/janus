@@ -50,9 +50,9 @@ func PublishMessage(credentials BrokerCredentials, sensorData map[string]any) er
 
 	// Publish a message
 	token := client.Publish(publicationTopic, 1, false, parsedSensorData)
-	token.Wait()
 
-	time.Sleep(6 * time.Second)
+	// time.Sleep(6 * time.Second)
+	<-token.Done()
 
 	// Disconnect
 	client.Disconnect(250)

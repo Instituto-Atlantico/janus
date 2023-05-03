@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Instituto-Atlantico/go-acapy-client"
@@ -87,48 +88,54 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 							runtime.Goexit() //interrupts the current routine
 						}
 						validatedData := make(map[string]any)
+						var wg sync.WaitGroup
 						for name, value := range sensorData {
-							log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
+							wg.Add(1)
+							go func(name string, value any) {
+								defer wg.Done() // remove from wait group
 
-							// request presentation proof for name
-							presentationRequest, err := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
-							if err != nil {
-								log.ErrorLogger("Agent %s: error creating presentation request for sensor %s: %s", agentIP, name, err)
-								continue
-							}
+								log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
 
-							time.Sleep(2 * time.Second)
+								// request presentation proof for name
+								presentationRequest, err := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
+								if err != nil {
+									log.ErrorLogger("Agent %s: error creating presentation request for sensor %s: %s", agentIP, name, err)
+									runtime.Goexit() //interrupts the current routine
+								}
 
-							credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
-							if err != nil {
-								log.ErrorLogger("Agent %s: error getting device credential: %s", agentIP, err)
-								continue
-							}
+								time.Sleep(2 * time.Second)
 
-							agents.SendPresentationByID(agentClient.Client, presentationRequest, credential)
+								credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
+								if err != nil {
+									log.ErrorLogger("Agent %s: error getting device credential: %s", agentIP, err)
+									runtime.Goexit() //interrupts the current routine
+								}
 
-							// wait for presentation to be ready
-							_, err = helper.TryUntilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
-								return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
-							}, 20)
-							if err != nil {
-								log.ErrorLogger("Agent %s: Timeout waiting for presentation done", agentIP)
-								continue
-							}
+								agents.SendPresentationByID(agentClient.Client, presentationRequest, credential)
 
-							// if presentation is valid store value
-							log.InfoLogger("Agent %s: Validating device sensors permissions", agentIP)
-							result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
-							if err != nil {
-								log.ErrorLogger("Agent %s: error verifying presentation proof: %s", agentIP, err)
-								continue
-							}
+								// wait for presentation to be ready
+								_, err = helper.TryUntilNoError(func() ([]acapy.PresentationExchangeRecord, error) {
+									return agents.IsPresentationDone(s.ServerClient, presentationRequest.ThreadID)
+								}, 20)
+								if err != nil {
+									log.ErrorLogger("Agent %s: Timeout waiting for presentation done", agentIP)
+									runtime.Goexit() //interrupts the current routine
+								}
 
-							if result.Verified == "true" {
-								validatedData[name] = value
-							}
-
+								// if presentation is valid store value
+								log.InfoLogger("Agent %s: Validating device sensors permissions for sensor %s", agentIP, name)
+								result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
+								if err != nil {
+									log.ErrorLogger("Agent %s: error verifying presentation proof for sensor %s: %s", agentIP, name, err)
+									runtime.Goexit() //interrupts the current routine
+								}
+								if result.Verified == "true" {
+									validatedData[name] = value
+								}
+							}(name, value)
 						}
+
+						wg.Wait()
 						log.InfoLogger("Agent %s: Allowed sensor data %s", agentIP, validatedData)
 
 						// send sensor data to Dojot upon presentation proof
