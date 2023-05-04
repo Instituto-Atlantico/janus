@@ -136,6 +136,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 						}
 
 						wg.Wait()
+
 						log.InfoLogger("Agent %s: Allowed sensor data %v", agentIP, validatedData)
 
 						// send sensor data to Dojot upon presentation proof
