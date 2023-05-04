@@ -94,7 +94,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 							go func(name string, value any) {
 								defer wg.Done() // remove from wait group
 
-								log.InfoLogger("Agent %s: Device %s sensor has value %s", agentIP, name, value)
+								log.InfoLogger("Agent %s: Device %s sensor has value %v", agentIP, name, value)
 
 								// request presentation proof for name
 								presentationRequest, err := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
@@ -136,7 +136,8 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 						}
 
 						wg.Wait()
-						log.InfoLogger("Agent %s: Allowed sensor data %s", agentIP, validatedData)
+
+						log.InfoLogger("Agent %s: Allowed sensor data %v", agentIP, validatedData)
 
 						// send sensor data to Dojot upon presentation proof
 						log.InfoLogger("Agent %s: Publishing message to Dojot", agentIP)
