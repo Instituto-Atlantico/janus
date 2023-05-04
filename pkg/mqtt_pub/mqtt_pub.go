@@ -36,7 +36,6 @@ func PublishMessage(credentials BrokerCredentials, sensorData map[string]any) er
 	// Set the message callback handler
 	opts.SetDefaultPublishHandler(f)
 	opts.SetPingTimeout(1 * time.Second)
-	//opts.HTTPHeaders.Add()
 
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
