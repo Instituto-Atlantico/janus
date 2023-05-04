@@ -79,11 +79,12 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 				agentIP := ips[0] // pendind multidevice in parallel
 				agentClient := s.Agents[agentIP.String()]
-				log.InfoLogger("Agent %s: collecting sensor data", agentIP)
+				log.InfoLogger("Agent %s: Collecting sensor data", agentIP)
 
 				sensorData, err := sensors.CollectSensorData(agentIP.String(), "5000")
+
 				if err != nil {
-					log.ErrorLogger("Agent %s: error collecting sensor data: %s", agentIP, err)
+					log.ErrorLogger("Agent %s: Error collecting sensor data: %s", agentIP, err)
 					continue
 				}
 
@@ -95,7 +96,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					// request presentation proof for name
 					presentationRequest, err := agents.CreateRequestPresentationForSensor(s.ServerClient, s.CredDefinitionId, agentClient.ConnectionID, name)
 					if err != nil {
-						log.ErrorLogger("Agent %s: error creating presentation request for sensor %s: %s", agentIP, name, err)
+						log.ErrorLogger("Agent %s: Error creating presentation request for sensor %s: %s", agentIP, name, err)
 						continue
 					}
 
@@ -103,7 +104,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 
 					credential, err := agents.GetCredential(agentClient.Client, "cred_def_id", s.CredDefinitionId)
 					if err != nil {
-						log.ErrorLogger("Agent %s: error getting device credential: %s", agentIP, err)
+						log.ErrorLogger("Agent %s: Error getting device credential: %s", agentIP, err)
 						continue
 					}
 
@@ -122,7 +123,7 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 					log.InfoLogger("Agent %s: Validating device sensors permissions", agentIP)
 					result, err := agents.VerifyPresentationByID(s.ServerClient, presentationRequest)
 					if err != nil {
-						log.ErrorLogger("Agent %s: error verifying presentation proof: %s", agentIP, err)
+						log.ErrorLogger("Agent %s: Error verifying presentation proof: %s", agentIP, err)
 						continue
 					}
 
@@ -137,10 +138,10 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 				log.InfoLogger("Agent %s: Publishing message to Dojot", agentIP)
 				err = mqtt_pub.PublishMessage(agentClient.BrokerCredentials, validatedData)
 				if err != nil {
-					log.ErrorLogger("Agent %s: error publishing message to mqtt Broker: %s", agentIP, err)
+					log.ErrorLogger("Agent %s: Error publishing message to mqtt Broker: %s", agentIP, err)
 					continue
 				}
-				log.InfoLogger("Agent %s: message sent to Dojot", agentIP)
+				log.InfoLogger("Agent %s: Message sent to Dojot", agentIP)
 			}
 		}
 	}()
@@ -181,7 +182,7 @@ func (s *Service) RunApi(port string) {
 		_, err = device.Client.Status()
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			log.ErrorLogger("Device agent is not running properly")
+			log.ErrorLogger("Agent %s: Device agent is not running properly", ip)
 			return
 		}
 
