@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/Instituto-Atlantico/janus/pkg/agent_deploy"
+	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/spf13/cobra"
 )
 
@@ -26,9 +27,10 @@ var issuerCmd = &cobra.Command{
 func init() {
 	deployCmd.AddCommand(issuerCmd)
 
-	issuerCmd.Flags().StringVar(&agentIp, "agent-ip", "", "The device`s ip of the network with the holder devices")
+	hostnameIp, _ := helper.GetOutboundIP()
+
+	issuerCmd.Flags().StringVar(&agentIp, "agent-ip", hostnameIp, "The device`s ip of the network with the holder devices")
 	issuerCmd.Flags().StringVar(&controllerPort, "controller-port", "8081", "The port that the janus-controller will run")
-	issuerCmd.MarkFlagRequired("agent-ip")
 }
 
 func deployAgentLocally() {
