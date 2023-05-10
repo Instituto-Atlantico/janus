@@ -1,0 +1,17 @@
+default:
+  sensors:
+  - temperature
+  - humidity
+  broker:
+    ip: "192.168.0.12"
+    username: "admin"
+    password: "admin"
+agents:
+  - hostname: pi@192.168.0.3 #rasp
+    sensors:
+      - humidity
+    broker:
+      id: "800a9f"
+  - hostname: vitor@192.168.0.6 #notebook
+    broker:
+      id: "e72928"
