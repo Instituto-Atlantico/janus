@@ -1,0 +1,123 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "janus-issuer",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/agents": {
+            "get": {
+                "description": "Get a list with of all agents",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agents"
+                ],
+                "summary": "Get details of all agents",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/agents/{IpAddress}": {
+            "delete": {
+                "description": "Delete the agent corresponding to the input IP address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agents"
+                ],
+                "summary": "Delete agent identified by the given IP address",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "IP address of the device to be deleted",
+                        "name": "IpAddress",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/provision": {
+            "post": {
+                "description": "Create a new provision with the input payload",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "provision"
+                ],
+                "summary": "Create a new provision",
+                "parameters": [
+                    {
+                        "description": "Create provision",
+                        "name": "provision",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.ProvisionBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.ProvisionBody"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "service.ProvisionBody": {
+            "type": "object",
+            "properties": {
+                "brokerIp": {
+                    "description": "127.0.0.1",
+                    "type": "string"
+                },
+                "brokerPassword": {
+                    "description": "brokerPass",
+                    "type": "string"
+                },
+                "brokerUsername": {
+                    "description": "brokerUser:deviceID",
+                    "type": "string"
+                },
+                "deviceHostName": {
+                    "description": "user@ip",
+                    "type": "string"
+                },
+                "permissions": {
+                    "description": "[\"temperature\", \"humidity\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

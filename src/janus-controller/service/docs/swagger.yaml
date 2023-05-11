@@ -1,0 +1,81 @@
+definitions:
+  service.ProvisionBody:
+    properties:
+      brokerIp:
+        description: 127.0.0.1
+        type: string
+      brokerPassword:
+        description: brokerPass
+        type: string
+      brokerUsername:
+        description: brokerUser:deviceID
+        type: string
+      deviceHostName:
+        description: user@ip
+        type: string
+      permissions:
+        description: '["temperature", "humidity"]'
+        items:
+          type: string
+        type: array
+    type: object
+info:
+  contact: {}
+  title: janus-issuer
+  version: "1.0"
+paths:
+  /agents:
+    get:
+      consumes:
+      - application/json
+      description: Get a list with of all agents
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Get details of all agents
+      tags:
+      - agents
+  /agents/{IpAddress}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete the agent corresponding to the input IP address
+      parameters:
+      - description: IP address of the device to be deleted
+        in: path
+        name: IpAddress
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Delete agent identified by the given IP address
+      tags:
+      - agents
+  /provision:
+    post:
+      consumes:
+      - application/json
+      description: Create a new provision with the input payload
+      parameters:
+      - description: Create provision
+        in: body
+        name: provision
+        required: true
+        schema:
+          $ref: '#/definitions/service.ProvisionBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ProvisionBody'
+      summary: Create a new provision
+      tags:
+      - provision
+swagger: "2.0"
