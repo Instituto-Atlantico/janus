@@ -37,16 +37,16 @@ func TryUntilNoError[R any](fn func() (R, error), timeoutInSeconds int) (R, erro
 }
 
 // Get preferred outbound ip of this machine
-func GetOutboundIP() (net.IP, error) {
+func GetOutboundIP() (string, error) {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer conn.Close()
 
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	localIpAddr := conn.LocalAddr().(*net.UDPAddr).IP.String()
 
-	return localAddr.IP, nil
+	return localIpAddr, nil
 }
 
 // ValidateSSHHostName uses regex to validate the format user@hostname for ssh connections
