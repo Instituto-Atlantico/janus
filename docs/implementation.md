@@ -1,14 +1,52 @@
 # Implementation docs
 
-The two main initial parts of Janus are the Device Provisioning and the Sensor Measurement with presentations. The following are two diagrams showing the proposed implementation of these functionalities:
+All the IoT devices used in janus tests were raspberry pis versions 3 and 4 
 
-## Device Provisioning
+## Technologies
+
+Main technologies used in development
+
+- [Go](https://go.dev/doc/install)
+- [Docker](https://docs.docker.com/engine/install/ubuntu)
+- [Docker Compose](https://docs.docker.com/compose/install/linux)
+
+Main technologies used in Raspberry Pi 3/4
+- Raspberry Pi OS (64 bit desktop and lite)  
+- Docker
+
+Hint to install docker on rasp
+
+```cmd
+sudo apt update
+sudo apt upgrade
+sudo apt install raspberrypi-kernel raspberrypi-kernel-headers
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker pi
+sudo reboot
+```
+
+## Processes
+The two main process of Janus are the Device Provisioning and the Sensor Measurement with presentations. The following are two diagrams showing the implementation of these functionalities:
+
+### Device Provisioning
 
 Device provisioning refers to the deploy of an aca-py agent on the rasp, done after its register on Dojot. To provision a device you need to pass the user@ip of the host and its Dojot id, required for storing sensor measurements in the next step.
 
+Device provisioning refers to the register of an aca-py agent on janus-controller. It's done by an API request /provision with the following information:
+
+```json
+{
+    "deviceHostName": "pi@192.168.0.1",
+    "permissions": ["temperature", "humidity"],
+    "brokerIp": "192.168.0.12",
+    "brokerUsername": "admin:e72928",
+    "brokerPassword": "admin"
+}
+```
+
 The requirements for this are:
     1. Having docker installed on the device
-    2. Having a ssh key par configured to enable ssh connection without passwords
+    2. The device mush already have an aca-py agent deployed, what can be made by janus-cli
     3. The device must be on the same network as the server machine 
 
 ``` mermaid
@@ -17,25 +55,18 @@ sequenceDiagram
     autonumber
 
     participant user
-    participant dojot
     participant janus as janus-controller
     participant server as server-agent
     participant rasp as rasp-agent
 
-    user ->> dojot: Register device and sensors
-    dojot -->> user: Registered
-
-    user ->> janus: Ask for device registration
-    note over user, janus: device registration requires the host ip and the its Dojot id
-
-    janus ->>+ rasp: Deploy aca-py agent
-    rasp -->>- janus: Aca-py agent up and running
+    user ->>+ janus: Ask for device provisioning
+    note over user, janus: Permissions and agent and broker information
 
     janus ->>+ server: Ask for invitation
     server -->>- janus: Done
 
-    janus ->>+ rasp: Ask for invitation accepting
-    rasp -->>- janus: Done
+    janus ->>+ rasp: Send invitation
+    rasp -->>- janus: Accepted
 
     janus ->> janus: Get device permissions
 
@@ -44,10 +75,10 @@ sequenceDiagram
     rasp -->>-server : Accepted
     server -->>-janus: Done
 
-    janus -->> user: Done
+    janus -->>- user: Done
 ```
 
-## Sensor measurement
+### Sensor measurement
 
 The sensor measurement will run periodically, asking for presentation proof to the device and making a validation on it. If the presentation is valid, janus will request the sensor data from the host and send it to Dojot, using the device id passed on device provisioning
 
