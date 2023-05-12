@@ -76,7 +76,7 @@ janus-cli deploy holder -H pi@192.168.0.1
 ``` 
 
 ```http
-post http://localhost:8081/provision HTTP/1.1
+POST http://localhost:8081/provision HTTP/1.1
 content-type: application/json
 
     {
