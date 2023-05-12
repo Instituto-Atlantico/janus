@@ -11,9 +11,9 @@ A Credential is issued to the IoT device with a list of sensors it is allowed to
 - [Janus](#Janus)
 - [Workflow](#Workflow)
 - [Usage](#Usage)
-  - [Issuer and Controller](#Deploy-an-issuer-agent-and-janus-controller:)
-  - [Single Holder](#Deploy-a-holder-agent-on-IoT-device:)
-  - [Multiple holders](#-Deploy-multiple-hosts-by-config-file:)
+    - [Issuer and Controller](#Deploy-an-issuer-agent-and-janus-controller:)
+    - [Single Holder](#Deploy-a-holder-agent-on-IoT-device:)
+    - [Multiple holders](#-Deploy-multiple-hosts-by-config-file:)
 - [Development](#Development)
 ## Workflow
 
