@@ -3,15 +3,15 @@ default:
   - temperature
   - humidity
   broker:
-    ip: "10.101.42.32"
+    ip: "127.0.0.1"
     username: "admin"
     password: "admin"
 agents:
-  - hostname: pi@10.101.42.34 #rasp
+  - hostname: pi@127.0.0.2 
     sensors:
       - humidity
     broker:
       id: "800a9f"
-  # - hostname: vitor@192.168.0.6 #notebook
-  #   broker:
-  #     id: "e72928"
+  - hostname: pi@127.0.0.3 
+    broker:
+      id: "e72928"
