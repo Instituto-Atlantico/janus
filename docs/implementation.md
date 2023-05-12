@@ -1,20 +1,20 @@
 # Implementation docs
 
-All the IoT devices used in janus tests were raspberry pis versions 3 and 4 
+All the IoT devices used in janus tests were Raspberry Pi devices in versions 3 and 4.
 
 ## Technologies
 
-Main technologies used in development
+Main technologies used in development:
 
 - [Go](https://go.dev/doc/install)
 - [Docker](https://docs.docker.com/engine/install/ubuntu)
 - [Docker Compose](https://docs.docker.com/compose/install/linux)
 
-Main technologies used in Raspberry Pi 3/4
+Main technologies used in Raspberry Pi 3/4:
 - Raspberry Pi OS (64 bit desktop and lite)  
 - Docker
 
-Hint to install docker on rasp
+Hint to install docker on rasp:
 
 ```cmd
 sudo apt update
@@ -45,9 +45,9 @@ Device provisioning refers to the register of an aca-py agent on janus-controlle
 ```
 
 The requirements for this are:
-    1. Having docker installed on the device
-    2. The device mush already have an aca-py agent deployed, what can be made by janus-cli
-    3. The device must be on the same network as the server machine 
+    1. Having docker installed on the device;
+    2. The device mush already have an aca-py agent deployed, what can be made by janus-cli;
+    3. The device must be on the same network as the server machine.
 
 ``` mermaid
 sequenceDiagram
@@ -80,7 +80,7 @@ sequenceDiagram
 
 ### Sensor measurement
 
-The sensor measurement will run periodically, asking for presentation proof to the device and making a validation on it. If the presentation is valid, janus will request the sensor data from the host and send it to Dojot, using the device id passed on device provisioning
+The sensor measurement will run periodically, asking for presentation proof to the device and making a validation on it. If the presentation is valid, janus will request the sensor data from the host and send it to Dojot, using the device id passed on device provisioning.
 
 ``` mermaid
 sequenceDiagram

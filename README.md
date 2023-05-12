@@ -2,13 +2,22 @@
 
 Janus uses [Verifiable Credentials](https://www.w3.org/TR/vc-data-model/) to add a new security layer over IoT devices and MQTT brokers. Providing a way to deploy and manage Aries agents on Iot Devices Through a CLI and ACA-py agents.
 
-A Credential is issued to the IoT device with a list of sensors it is allowed to export data and a presentation proof of this credential is required before every sensor data transmission to the broker
+A Credential is issued to the IoT device with a list of sensors it is allowed to export data and a presentation proof of this credential is required before every sensor data transmission to the broker.
 
 ![A two pieces diagram. The first shows an IoT device sending sensor information directly to Dojot MQTT broker, while the second shows Janus issuing credentials and running presentation proof validations with the IoT device, registering DiDs, credentials and verifying presentations with an Indy blockchain and sending the sensor information to Dojot MQTT broker](./docs/diagram.png)
 
+## Table of Contents
+
+- [Janus](#Janus)
+- [Workflow](##Workflow)
+- [Usage](##Usage)
+  - [Issuer and Controller](###Deploy-an-issuer-agent-and-janus-controller:)
+  - [Single Holder](###Deploy-a-holder-agent-on-IoT-device:)
+  - [Multiple holders](###-Deploy-multiple-hosts-by-config-file:)
+- [Development](##Development)
 ## Workflow
 
-The main workflow is based on three steps. The manual deploy of the agents usign the CLI, the device provisioning, where the credentials will be issued and the sensor measurement with presentations proofs where the data is sent to the mqtt broker
+The main workflow is based on three steps. The manual deploy of the agents usign the CLI, the device provisioning, where the credentials will be issued and the sensor measurement with presentations proofs where the data is sent to the mqtt broker.
 
 ```mermaid
 sequenceDiagram
@@ -108,17 +117,16 @@ janus-cli deploy holder -F ./agents.yaml -p
 > -p refers to auto-provisioning if the janus-controller is already running 
 
 ### Need more help using it? 
-For more details about the CLI use -h flag to get some help
+For more details about the CLI use -h flag to get some help:
 
 ```cmd
 janus-cli -h
+janus-cli deploy -h
 ```
 ## Development
 
-Janus was developed usign go 1.20, Docker 20.10.24 and relies over ACA-py agents and docker automation. For diagrams and more details about the implementation, check [here](./docs/implementation.md)
+Janus was developed usign go 1.20, Docker 20.10.24 and relies over ACA-py agents and docker automation. For diagrams and more details about the implementation, check [here](./docs/implementation.md).
 
-Before starting working it's required to run 	``` go generate ./... ``` so the docker files will be copied to the corresponding directories, required for the docker automation
+Before starting working it's required to run 	``` go generate ./... ``` so the docker files will be copied to the corresponding directories, required for the docker automation.
 
-### Building
-
-On linux, the command ```make build-cli``` will generate binaries for linux, mac and windows on /bin folder. 
+For building the application use Make with the command ```make build-cli```. This will generate binaries for linux, mac and windows on /bin folder. 
