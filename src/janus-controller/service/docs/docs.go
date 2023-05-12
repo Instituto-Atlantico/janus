@@ -106,26 +106,34 @@ const docTemplate = `{
             "properties": {
                 "brokerIp": {
                     "description": "127.0.0.1",
-                    "type": "string"
+                    "type": "string",
+                    "example": "192.168.0.2"
                 },
                 "brokerPassword": {
                     "description": "brokerPass",
-                    "type": "string"
+                    "type": "string",
+                    "example": "admin"
                 },
                 "brokerUsername": {
                     "description": "brokerUser:deviceID",
-                    "type": "string"
+                    "type": "string",
+                    "example": "admin:a1998e"
                 },
                 "deviceHostName": {
                     "description": "user@ip",
-                    "type": "string"
+                    "type": "string",
+                    "example": "rasp@192.168.0.5"
                 },
                 "permissions": {
                     "description": "[\"temperature\", \"humidity\"]",
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "temperature",
+                        " humidity"
+                    ]
                 }
             }
         }

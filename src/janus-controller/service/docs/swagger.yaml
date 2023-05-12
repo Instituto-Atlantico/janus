@@ -3,18 +3,25 @@ definitions:
     properties:
       brokerIp:
         description: 127.0.0.1
+        example: 192.168.0.2
         type: string
       brokerPassword:
         description: brokerPass
+        example: admin
         type: string
       brokerUsername:
         description: brokerUser:deviceID
+        example: admin:a1998e
         type: string
       deviceHostName:
         description: user@ip
+        example: rasp@192.168.0.5
         type: string
       permissions:
         description: '["temperature", "humidity"]'
+        example:
+        - temperature
+        - ' humidity'
         items:
           type: string
         type: array
