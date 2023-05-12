@@ -9,12 +9,12 @@ A Credential is issued to the IoT device with a list of sensors it is allowed to
 ## Table of Contents
 
 - [Janus](#Janus)
-- [Workflow](##Workflow)
-- [Usage](##Usage)
-  - [Issuer and Controller](###Deploy-an-issuer-agent-and-janus-controller:)
-  - [Single Holder](###Deploy-a-holder-agent-on-IoT-device:)
-  - [Multiple holders](###-Deploy-multiple-hosts-by-config-file:)
-- [Development](##Development)
+- [Workflow](#Workflow)
+- [Usage](#Usage)
+  - [Issuer and Controller](#Deploy-an-issuer-agent-and-janus-controller:)
+  - [Single Holder](#Deploy-a-holder-agent-on-IoT-device:)
+  - [Multiple holders](#-Deploy-multiple-hosts-by-config-file:)
+- [Development](#Development)
 ## Workflow
 
 The main workflow is based on three steps. The manual deploy of the agents usign the CLI, the device provisioning, where the credentials will be issued and the sensor measurement with presentations proofs where the data is sent to the mqtt broker.
