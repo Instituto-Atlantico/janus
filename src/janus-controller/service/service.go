@@ -293,7 +293,6 @@ func deleteAgent(s *Service) {
 	http.HandleFunc("/agents/", func(w http.ResponseWriter, r *http.Request) {
 
 		ip := strings.TrimPrefix(r.URL.Path, "/agents/")
-		log.InfoLogger("Device with ip %s was removed", ip)
 		if ip == "" {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			fmt.Fprintf(w, "No agent ip was passed")
@@ -301,7 +300,7 @@ func deleteAgent(s *Service) {
 		}
 
 		delete(s.Agents, ip)
-		//fmt.Println(s.Agents)
+		log.InfoLogger("Device with ip %s was removed", ip)
 	})
 }
 
@@ -313,7 +312,7 @@ func (s *Service) RunApi(port string) {
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	log.InfoLogger("Server listening on port %s", port)
-	err := http.ListenAndServe(fmt.Sprintf(":3000"), nil)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
 		log.ErrorLogger("Server listening: %s", err)
 	}
