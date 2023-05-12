@@ -11,9 +11,9 @@ A Credential is issued to the IoT device with a list of sensors it is allowed to
 1. [Janus](#Janus)
 2. [Workflow](#Workflow)
 3. [Usage](#Usage)
-    1. [Issuer and Controller](#Deploy-an-issuer)
-    2. [Single Holder](#Deploy-a-holder)
-    3. [Multiple holders](#-Deploy-)
+    1. [Issuer and Controller](#Deploy-an-issuer-agent-and-janus-controller)
+    2. [Single Holder](#Deploy-a-holder-agent-on-IoT-device)
+    3. [Multiple holders](#Deploy-multiple-hosts-by-config-file)
 4. [Development](#Development)
 ## Workflow
 
@@ -61,13 +61,13 @@ sequenceDiagram
 
 > _**Important**_: Having Docker either in the host machine and IoT device is the only installation requirement of Janus.
 
-### Deploy an issuer agent and janus-controller:
+### Deploy an issuer agent and janus-controller
 
 ```cmd
 janus-cli deploy issuer 
 ``` 
 
-### Deploy a holder agent on IoT device:
+### Deploy a holder agent on IoT device
 
 > _**Note:**_ A previously configured [SSH key authentication](https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-2) between the host and IoT device is required for this step. 
 
@@ -88,7 +88,7 @@ content-type: application/json
     }
 ```
 
-### Deploy multiple hosts by config file:
+### Deploy multiple hosts by config file
 
 ```yaml
 
