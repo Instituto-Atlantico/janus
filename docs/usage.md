@@ -1,6 +1,6 @@
 # Usage
 
-![The same diagram from the home page readme. A two pieces diagram. The first shows an IoT device sending sensor information directly to Dojot MQTT broker, while the second shows Janus issuing credentials and running presentation proof validations with the IoT device, registering DiDs, credentials and verifying presentations with an Indy blockchain and sending the sensor information to Dojot MQTT broker](./docs/diagram.png)
+![The same diagram from the home page readme. A two pieces diagram. The first shows an IoT device sending sensor information directly to Dojot MQTT broker, while the second shows Janus issuing credentials and running presentation proof validations with the IoT device, registering DiDs, credentials and verifying presentations with an Indy blockchain and sending the sensor information to Dojot MQTT broker](./diagram.png)
 
 Janus' usage is based on raspberry pi as our IoT devices, Dojot as our Sensors Measurements MQTT brokers and Docker as our main functional requirement. All the steps for running everything will be described here.
 
