@@ -59,6 +59,8 @@ sequenceDiagram
 ```
 ## Usage
 
+For more datails about usage, such as the deployment of Sensor Collectors on the IoT device, and how to run our target MQTT broker, Dojot, see our [Usage](./docs/usage.md) doc.
+
 > _**Important**_: Having Docker either in the host machine and IoT device is the only installation requirement of Janus.
 
 ### Deploy an issuer agent and janus-controller
