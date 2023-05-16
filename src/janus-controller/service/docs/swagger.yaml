@@ -1,5 +1,5 @@
 definitions:
-  service.ProvisionBody:
+  controller_handlers.ProvisionBody:
     properties:
       brokerIp:
         description: 127.0.0.1
@@ -74,14 +74,14 @@ paths:
         name: provision
         required: true
         schema:
-          $ref: '#/definitions/service.ProvisionBody'
+          $ref: '#/definitions/controller_handlers.ProvisionBody'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/service.ProvisionBody'
+            $ref: '#/definitions/controller_handlers.ProvisionBody'
       summary: Create a new provision
       tags:
       - provision

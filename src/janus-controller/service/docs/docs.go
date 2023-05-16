@@ -85,7 +85,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.ProvisionBody"
+                            "$ref": "#/definitions/controller_handlers.ProvisionBody"
                         }
                     }
                 ],
@@ -93,7 +93,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/service.ProvisionBody"
+                            "$ref": "#/definitions/controller_handlers.ProvisionBody"
                         }
                     }
                 }
@@ -101,7 +101,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "service.ProvisionBody": {
+        "controller_handlers.ProvisionBody": {
             "type": "object",
             "properties": {
                 "brokerIp": {

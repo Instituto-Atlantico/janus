@@ -75,7 +75,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.ProvisionBody"
+                            "$ref": "#/definitions/controller_handlers.ProvisionBody"
                         }
                     }
                 ],
@@ -83,7 +83,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/service.ProvisionBody"
+                            "$ref": "#/definitions/controller_handlers.ProvisionBody"
                         }
                     }
                 }
@@ -91,7 +91,7 @@
         }
     },
     "definitions": {
-        "service.ProvisionBody": {
+        "controller_handlers.ProvisionBody": {
             "type": "object",
             "properties": {
                 "brokerIp": {
