@@ -165,8 +165,8 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 // @Tags provision
 // @Accept  json
 // @Produce  json
-// @Param provision body ProvisionBody true "Create provision"
-// @Success 200 {object} ProvisionBody
+// @Param provision body controller_handlers.ProvisionBody true "Create provision"
+// @Success 200 {object} controller_handlers.ProvisionBody
 // @Router /provision [post]
 func createProvision(s *Service) {
 	http.HandleFunc("/provision", func(w http.ResponseWriter, r *http.Request) {
