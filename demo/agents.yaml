@@ -1,0 +1,17 @@
+default:
+  sensors:
+  - temperature
+  - humidity
+  broker:
+    ip: "127.0.0.1"
+    username: "admin"
+    password: "admin"
+agents:
+  - hostname: pi@127.0.0.2 
+    sensors:
+      - humidity
+    broker:
+      id: "800a9f"
+  - hostname: pi@127.0.0.3 
+    broker:
+      id: "e72928"

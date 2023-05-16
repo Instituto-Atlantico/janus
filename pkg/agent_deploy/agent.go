@@ -12,6 +12,7 @@ import (
 type ComposeInfo struct {
 	Seed      string
 	Name      string
+	HostName  string
 	Endpoint  string
 	AdminPort string
 	AgentPort string
@@ -33,12 +34,12 @@ func parseComposeInfo(info ComposeInfo, cmd *exec.Cmd) {
 	cmd.Env = append(cmd.Env, fmt.Sprintf("CONTROLLER_PORT=%s", info.ControllerPort))
 }
 
-func InstantiateAgent(agent ComposeInfo, hostName, profile string) error {
+func InstantiateAgent(agent ComposeInfo, profile string) error {
 	command := "docker "
 
 	// add -H hostname if remote deploying
-	if hostName != "" {
-		command += fmt.Sprintf("-H ssh://%s ", hostName)
+	if agent.HostName != "" {
+		command += fmt.Sprintf("-H ssh://%s ", agent.HostName)
 	}
 
 	// append the rest of the command

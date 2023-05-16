@@ -13,6 +13,7 @@ import (
 
 	"github.com/Instituto-Atlantico/go-acapy-client"
 	"github.com/Instituto-Atlantico/janus/pkg/agents"
+	"github.com/Instituto-Atlantico/janus/pkg/controller_handlers"
 	"github.com/Instituto-Atlantico/janus/pkg/helper"
 	"github.com/Instituto-Atlantico/janus/pkg/mqtt_pub"
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
@@ -177,10 +178,10 @@ func createProvision(s *Service) {
 		}
 
 		// parse body
-		var provisionBody ProvisionBody
+		var provisionBody controller_handlers.ProvisionBody
 		err := json.NewDecoder(r.Body).Decode(&provisionBody)
 
-		if !ProvisionBodyIsValid(provisionBody) || err != nil {
+		if !controller_handlers.ProvisionBodyIsValid(provisionBody) || err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprint(w, "Invalid body")
 
