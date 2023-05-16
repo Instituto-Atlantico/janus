@@ -313,6 +313,7 @@ func (s *Service) RunApi(port string) {
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	log.InfoLogger("Server listening on port %s", port)
+	log.InfoLogger("Use endpoints by swagger on http://localhost:%s/swagger", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
 		log.ErrorLogger("Server listening: %s", err)
