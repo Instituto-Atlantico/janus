@@ -8,7 +8,7 @@ Janus' usage is based on raspberry pi as our IoT devices, Dojot as our Sensors M
 
 ### Configuring the OS
 
-Use [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install an OS on the raspberry. We used raspberry pi os lite on our tests. You can also use the imager to pre-connect the device on a wifi network .
+Use [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to instal an OS on the raspberry. We used raspberry pi os lite on our tests. You can also use the imager to pre-connect the device on a wifi network .
 
 Check the following tutorial for help: https://raspberrytips.com/raspberry-pi-wifi-setup/#:~:text=of%20the%20time.-,Use%20Raspberry%20Pi%20Imager,-The%20easiest%20way.
 
@@ -51,7 +51,7 @@ Example:
 
 ## Dojot
 
-Dojot is the mqqt broker supported by Janus.
+Dojot is the MQTT broker supported by Janus.
 
 ### Deploying dojot 
 
@@ -71,7 +71,7 @@ Check [this tutorial](https://dojotdocs.readthedocs.io/en/latest/using-web-inter
 
 ## Janus
 
-One time you have setted up the raspberry pi (OS, SSH keys and sensor collectors) and Dojot(Deployment and device creation) you are ready to start working with Janus using janus-cli.
+One time you had set up the raspberry pi (OS, SSH keys and sensor collectors) and Dojot(Deployment and device creation) you are ready to start working with Janus using janus-cli.
 
 > _**Note:**_ For more details about the CLI use -h flag to get some help:
 
@@ -132,4 +132,4 @@ content-type: application/json
 
 5. Wait for the device provisioning
 
-6. See the sensor measurments reaching Dojot
+6. See the sensor measurements reaching Dojot
