@@ -17,7 +17,7 @@ A Credential is issued to the IoT device with a list of sensors it is allowed to
 4. [Development](#Development)
 ## Workflow
 
-The main workflow is based on three steps. The manual deploy of the agents usign the CLI, the device provisioning, where the credentials will be issued and the sensor measurement with presentations proofs where the data is sent to the mqtt broker.
+The main workflow is based on three steps. The manual deploy of the agents using the CLI, the device provisioning, where the credentials will be issued and the sensor measurement with presentation proofs where the data is sent to the MQTT broker.
 
 ```mermaid
 sequenceDiagram
