@@ -131,4 +131,4 @@ Janus was developed usign go 1.20, Docker 20.10.24 and relies over ACA-py agents
 
 Before starting working it's required to run 	``` go generate ./... ``` so the docker files will be copied to the corresponding directories, required for the docker automation.
 
-For building the application use Make with the command ```make build-cli```. This will generate binaries for linux, mac and windows on /bin folder. 
+For building the application use Make with the command ```make build-cli```. This will generate binaries for Linux, Mac and Windows on /bin folder. 
