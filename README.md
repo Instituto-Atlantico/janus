@@ -1,88 +1,134 @@
 # Janus
 
-Janus provides a way to deploy and manage Aries agents on Iot Devices Through a CLI and Aca-py agents.
+Janus uses [Verifiable Credentials](https://www.w3.org/TR/vc-data-model/) to add a new security layer over IoT devices and MQTT brokers. Providing a way to deploy and manage Aries agents on Iot Devices Through a CLI and ACA-py agents.
 
-## Technologies
+A Credential is issued to the IoT device with a list of sensors it is allowed to export data and a presentation proof of this credential is required before every sensor data transmission to the broker.
 
-Main technologies used in Ubuntu desktop
+![A two pieces diagram. The first shows an IoT device sending sensor information directly to Dojot MQTT broker, while the second shows Janus issuing credentials and running presentation proof validations with the IoT device, registering DiDs, credentials and verifying presentations with an Indy blockchain and sending the sensor information to Dojot MQTT broker](./docs/diagram.png)
 
-- [Go](https://go.dev/doc/install)
-- [Docker](https://docs.docker.com/engine/install/ubuntu)
-- [Docker Compose](https://docs.docker.com/compose/install/linux)
+## Table of Contents
 
-Main technologies used in Raspberry Pi 3/4
-- Raspberry Pi OS (64 bit)
-- Docker
+1. [Janus](#Janus)
+2. [Workflow](#Workflow)
+3. [Usage](#Usage)
+    1. [Issuer and Controller](#Deploy-an-issuer-agent-and-janus-controller)
+    2. [Single Holder](#Deploy-a-holder-agent-on-IoT-device)
+    3. [Multiple holders](#Deploy-multiple-hosts-by-config-file)
+4. [Development](#Development)
+## Workflow
 
-Hint with commands to install
+The main workflow is based on three steps. The manual deploy of the agents using the CLI, the device provisioning, where the credentials will be issued and the sensor measurement with presentation proofs where the data is sent to the MQTT broker.
 
+```mermaid
+sequenceDiagram
+    title: Full process
+    autonumber
+
+    participant user as janus-cli
+
+    participant janus as janus-controller
+    participant server as server-agent
+    participant rasp as rasp-agent
+
+    user ->> server: Deploy janus-issuer
+    server -->> janus: Done
+    user ->>+ rasp: Deploy janus-holder
+    rasp -->>- janus: Done
+    user ->> janus: Ask for device provision
+    janus ->> server: Ask for an invitation
+    server -->> janus: Created
+    janus ->> rasp: Send invitation
+    rasp -->> janus: Accepted
+    janus ->>  rasp: Issue credential with permissions
+    rasp -->> janus: Done
+    janus -->> user: Done
+
+    loop every x seconds
+        janus ->> rasp: Ask for sensor measurements
+        rasp -->> janus: Sent
+
+        loop for each sensor
+            janus ->> rasp: Ask for a presentation-proof with the sensor type
+            rasp -->> janus: Sent
+            janus ->> server: Validate presentation-proof
+            server -->> janus: Validated
+        end
+
+        janus ->> janus: Send validated sensor measurements to the broker
+    end
 ```
-sudo apt update
-sudo apt upgrade
-sudo apt install raspberrypi-kernel raspberrypi-kernel-headers
-curl -sSL https://get.docker.com | sh
-sudo usermod -aG docker <device-user>
-sudo reboot
+## Usage
+
+For more details about usage, such as the deployment of Sensor Collectors on the IoT device, and how to run our target MQTT broker, Dojot, see our [Usage](./docs/usage.md) doc.
+
+> _**Important**_: Having Docker either in the host machine and IoT device is the only installation requirement of Janus.
+
+### Deploy an issuer agent and janus-controller
+
+```cmd
+janus-cli deploy issuer 
+``` 
+
+### Deploy a holder agent on IoT device
+
+> _**Note:**_ A previously configured [SSH key authentication](https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-2) between the host and IoT device is required for this step. 
+
+```cmd
+janus-cli deploy holder -H pi@192.168.0.1
+``` 
+
+```http
+POST http://localhost:8081/provision HTTP/1.1
+content-type: application/json
+
+    {
+        "deviceHostName": "pi@192.168.0.6",
+        "permissions": ["temperature", "humidity"],
+        "brokerIp": "192.168.0.12",
+        "brokerUsername": "admin:e72928",
+        "brokerPassword": "admin"
+    }
 ```
 
-## How to clone this repository
+### Deploy multiple hosts by config file
 
-```bash
-git clone https://github.com/Instituto-Atlantico/janus.git
+```yaml
+
+default: # Default values will be set on agents blank fields.
+  sensors:
+  - temperature
+  - humidity
+  broker:
+    ip: "127.0.0.1"
+    username: "admin"
+    password: "admin"
+agents:
+  - hostname: pi@192.168.0.1
+    sensors:
+      - humidity
+    broker:
+      id: "800a9f"
+  - hostname: pi@192.168.0.2
+    broker:
+      id: "e72928"
 ```
 
-## How to build the CLI
-
-Using Janus directly through go run is not recommended because some embed and configurations are made on the build process. 
-
-To build run:
-
+```cmd
+janus-cli deploy holder -F ./agents.yaml -p
 ```
-cd janus && make build-cli
+> -p refers to auto-provisioning if the janus-controller is already running 
+
+### Need more help using it? 
+For more details about the CLI use -h flag to get some help:
+
+```cmd
+janus-cli -h
+janus-cli deploy -h
 ```
+## Development
 
-## How to deploy an agent on a remote device via the Ubuntu terminal
+Janus was developed using go 1.20, Docker 20.10.24 and relies over ACA-py agents and docker automation. For diagrams and more details about the implementation, check [here](./docs/implementation.md).
 
-Having an ssh key par configured and already passed as authorized_keys on remote device is required. Need help with this? Click [here](https://phoenixnap.com/kb/ssh-with-key).
+Before starting working it's required to run 	``` go generate ./... ``` so the docker files will be copied to the corresponding directories, required for the docker automation.
 
-```
-./bin/janus-cli_linux_amd64 deploy remote --agent-port <port-number> --agent-name <agent-name> -H <device-user>@<device-ip>
-```
-
-For example:
-
-```
-./bin/janus-cli_linux_amd64 deploy remote --agent-port 8001 --agent-name demo -H pi@192.168.0.2
-```
-
-The Aries agent will be available at port 8001 and the admin page at port 8002, such as http://192.168.0.2:8002
-
-## How to deploy an agent locally via the Ubuntu terminal
-
-To deploy locally you can run, but it will only be able to communicate with other local agents.
-
-```
-./bin/janus-cli_linux_amd64 deploy local --agent-port <port-number> --agent-name <agent-name>
-```
-
-For example:
-
-```
-./bin/janus-cli_linux_amd64 deploy local --agent-port 8001 --agent-name demo
-```
-
-The Aries agent will be available at port 8001 and the admin page at port 8002, such as http://localhost:8002
-
-If you want to have communication between local and remote devices you need to pass the network IP for the local device:
-
-```
-./bin/janus-cli_linux_amd64 deploy local --agent-port <port-number> --agent-name <agent-name> --agent-ip <agent-ip>
-```
-
-## How to use the CLI in other operating systems
-
-To use in Windows check [here](./docs/windows.md) the doc.
-
-To use in macOS check [here](./docs/apple.md) the doc.
-
-Read more about the proposed features [here](./docs/readme.md)
+For building the application use Make with the command ```make build-cli```. This will generate binaries for Linux, Mac and Windows on /bin folder. 
