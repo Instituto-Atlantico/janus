@@ -19,6 +19,8 @@ import (
 	"github.com/Instituto-Atlantico/janus/pkg/sensors"
 
 	log "github.com/Instituto-Atlantico/janus/pkg/logger"
+	_ "github.com/Instituto-Atlantico/janus/src/janus-controller/service/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Device struct {
@@ -37,6 +39,8 @@ var AllowedPermissions = []string{
 	"temperature", "humidity",
 }
 
+// @title janus-issuer
+// @version 1.0
 func (s *Service) Init(serverAgentIp string) {
 	var err error
 
@@ -155,7 +159,16 @@ func (s *Service) RunCollector(timeoutInSeconds int) {
 	}()
 }
 
-func (s *Service) RunApi(port string) {
+// CreateProvision godoc
+// @Summary Create a new provision
+// @Description Create a new provision with the input payload
+// @Tags provision
+// @Accept  json
+// @Produce  json
+// @Param provision body controller_handlers.ProvisionBody true "Create provision"
+// @Success 200 {object} controller_handlers.ProvisionBody
+// @Router /provision [post]
+func createProvision(s *Service) {
 	http.HandleFunc("/provision", func(w http.ResponseWriter, r *http.Request) {
 		//check method
 		if r.Method != http.MethodPost {
@@ -252,28 +265,55 @@ func (s *Service) RunApi(port string) {
 			s.Agents[ip] = &device
 		}()
 	})
+}
 
+// GetAgents godoc
+// @Summary Get details of all agents
+// @Description Get a list with of all agents
+// @Tags agents
+// @Accept  json
+// @Produce  json
+// @Success 200
+// @Router /agents [get]
+func getAgents(s *Service) {
+	http.HandleFunc("/agents", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, reflect.ValueOf(s.Agents).MapKeys())
+	})
+}
+
+// DeleteAgent godoc
+// @Summary Delete the agent identified by the given IP address
+// @Description Delete the agent corresponding to the input IP address
+// @Tags agents
+// @Accept  json
+// @Produce  json
+// @Param IpAddress path string true "IP address of the device to be deleted"
+// @Success 204 "No Content"
+// @Router /agents/{IpAddress} [delete]
+func deleteAgent(s *Service) {
 	http.HandleFunc("/agents/", func(w http.ResponseWriter, r *http.Request) {
 
-		switch r.Method {
-		case http.MethodGet:
-			fmt.Fprint(w, reflect.ValueOf(s.Agents).MapKeys())
-		case http.MethodDelete:
-			ip := strings.TrimPrefix(r.URL.Path, "/agents/")
-			fmt.Println(ip)
-			if ip == "" {
-				w.WriteHeader(http.StatusUnprocessableEntity)
-				fmt.Fprintf(w, "No agent ip was passed")
-				return
-			}
-
-			fmt.Println(s.Agents)
-			delete(s.Agents, ip)
-			fmt.Println(s.Agents)
+		ip := strings.TrimPrefix(r.URL.Path, "/agents/")
+		if ip == "" {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			fmt.Fprintf(w, "No agent ip was passed")
+			return
 		}
+
+		delete(s.Agents, ip)
+		log.InfoLogger("Device with ip %s was removed", ip)
 	})
+}
+
+func (s *Service) RunApi(port string) {
+	createProvision(s)
+	getAgents(s)
+	deleteAgent(s)
+
+	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	log.InfoLogger("Server listening on port %s", port)
+	log.InfoLogger("Use endpoints by swagger on http://localhost:%s/swagger", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
 		log.ErrorLogger("Server listening: %s", err)
