@@ -71,47 +71,49 @@ func deployMultipleAgents() {
 			Endpoint:  fmt.Sprintf("http://%s", strings.Split(a.Hostname, "@")[1]),
 		}
 
-		go func(agent yaml_parser.Agent) {
+		go func(agent yaml_parser.Agent, provision bool) {
 			defer wg.Done()
 
-			log.Printf("deploing agent on %s device\n", agent.Hostname)
+			log.Printf("deploying agent on %s device\n", agent.Hostname)
 			err := deployAgent(composeInfo)
 			if err != nil {
 				log.Println(err)
 				runtime.Goexit() //interrupts the current routine
 			}
 
-			ip := strings.Split(agent.Hostname, "@")[1]
-			client := acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
+			if provision {
+				ip := strings.Split(agent.Hostname, "@")[1]
+				client := acapy.NewClient(fmt.Sprintf("http://%s:8002", ip))
 
-			log.Printf("Waiting for agent deploy on %s device\n", agent.Hostname)
-			_, err = helper.TryUntilNoError(func() (acapy.Status, error) {
-				return client.Status()
-			}, 600)
-			if err != nil {
-				log.Printf("error on auto-provisioning for agent %s:%s\n", ip, err)
-			}
+				log.Printf("Waiting for agent deploy on %s device\n", agent.Hostname)
+				_, err = helper.TryUntilNoError(func() (acapy.Status, error) {
+					return client.Status()
+				}, 600)
+				if err != nil {
+					log.Printf("error on auto-provisioning for agent %s:%s\n", ip, err)
+				}
 
-			service := controller_handlers.ControllerService{
-				Address: controllerAddr,
-			}
+				service := controller_handlers.ControllerService{
+					Address: controllerAddr,
+				}
 
-			body := controller_handlers.ProvisionBody{
-				DeviceHostName: agent.Hostname,
-				Permissions:    agent.Sensors,
-				BrokerIp:       agent.Broker.IP,
-				BrokerUsername: fmt.Sprintf("%s:%s", agent.Broker.Username, agent.Broker.ID),
-				BrokerPassword: agent.Broker.Password,
-			}
-			log.Printf("Provisioning agent of %s device on %s controller\n", agent.Hostname, controllerAddr)
-			err = service.RequestProvision(body)
-			if err != nil {
-				log.Println("Error on provisioning: ", err)
-				runtime.Goexit() //interrupts the current routine
-			}
+				body := controller_handlers.ProvisionBody{
+					DeviceHostName: agent.Hostname,
+					Permissions:    agent.Sensors,
+					BrokerIp:       agent.Broker.IP,
+					BrokerUsername: fmt.Sprintf("%s:%s", agent.Broker.Username, agent.Broker.ID),
+					BrokerPassword: agent.Broker.Password,
+				}
+				log.Printf("Provisioning agent of %s device on %s controller\n", agent.Hostname, controllerAddr)
+				err = service.RequestProvision(body)
+				if err != nil {
+					log.Println("Error on provisioning: ", err)
+					runtime.Goexit() //interrupts the current routine
+				}
 
-			log.Println("Provisioning done for agent ", agent.Hostname)
-		}(a)
+				log.Println("Provisioning done for agent ", agent.Hostname)
+			}
+		}(a, provision)
 	}
 	wg.Wait()
 }
