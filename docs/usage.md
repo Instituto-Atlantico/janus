@@ -65,7 +65,7 @@ git clone git@github.com:dojot/docker-compose.git
 
 Run it with docker:
 ```cmd
-docker-compose --profile complete up --detach
+docker compose --profile complete up --detach
 ```
 
 Check [this tutorial](https://dojotdocs.readthedocs.io/en/latest/using-web-interface.html#device-management) for details about creating and managing devices with Dojot.

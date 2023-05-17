@@ -59,7 +59,7 @@ sequenceDiagram
 ```
 ## Usage
 
-For more datails about usage, such as the deployment of Sensor Collectors on the IoT device, and how to run our target MQTT broker, Dojot, see our [Usage](./docs/usage.md) doc.
+For more details about usage, such as the deployment of Sensor Collectors on the IoT device, and how to run our target MQTT broker, Dojot, see our [Usage](./docs/usage.md) doc.
 
 > _**Important**_: Having Docker either in the host machine and IoT device is the only installation requirement of Janus.
 
@@ -127,7 +127,7 @@ janus-cli deploy -h
 ```
 ## Development
 
-Janus was developed usign go 1.20, Docker 20.10.24 and relies over ACA-py agents and docker automation. For diagrams and more details about the implementation, check [here](./docs/implementation.md).
+Janus was developed using go 1.20, Docker 20.10.24 and relies over ACA-py agents and docker automation. For diagrams and more details about the implementation, check [here](./docs/implementation.md).
 
 Before starting working it's required to run 	``` go generate ./... ``` so the docker files will be copied to the corresponding directories, required for the docker automation.
 
