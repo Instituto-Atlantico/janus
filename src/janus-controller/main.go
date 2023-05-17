@@ -16,7 +16,7 @@ var (
 
 func handleFlags() {
 	flag.StringVar(&serverAgentIp, "server-agent-ip", "", "")
-	flag.StringVar(&port, "port", "8080", "The port the controller api will run")
+	flag.StringVar(&port, "port", "8081", "The port the controller api will run")
 	flag.IntVar(&collectorTime, "collector-time", 30, "The time between sensor collections")
 	flag.Parse()
 
