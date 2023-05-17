@@ -4,7 +4,6 @@
 
 Janus' usage is based on raspberry pi as our IoT devices, Dojot as our Sensors Measurements MQTT brokers and Docker as our main functional requirement. All the steps for running everything will be described here.
 
-
 ## Raspberry setup
 
 ### Configuring the OS
@@ -74,28 +73,52 @@ Check [this tutorial](https://dojotdocs.readthedocs.io/en/latest/using-web-inter
 
 One time you have setted up the raspberry pi (OS, SSH keys and sensor collectors) and Dojot(Deployment and device creation) you are ready to start working with Janus using janus-cli.
 
+> _**Note:**_ For more details about the CLI use -h flag to get some help:
+
+```cmd
+janus-cli -h
+janus-cli deploy -h
+```
+
 The steps are:
 
-1. Deploy an agent on the rasp:
+1. Download janus from [github releases page](https://github.com/Instituto-Atlantico/janus/releases) and rename it as janus-cli
 
-> _**Note:**_ This might take 5-8 minutes to finish
+```
+#linux:
+mv ./janus-cli_linux_amd64 ./janus-cli
+
+#mac
+mv ./janus-cli_darwin_amd64 ./janus-cli
+
+#windows: 
+ren janus-cli_windows_amd64 janus-cli
+```
+
+2. Deploy an agent on the rasp:
+
+Use the username and ip of your device as the following <device-username>@<device-ip>
+
+> _**Note:**_ This might take 5-8 minutes to finish.
 
 ```cmd
 > janus-cli deploy holder -H pi@192.168.0.1
 ```
 
-2. Deploy the local agent and the janus-controller:
+3. Deploy the local agent and the janus-controller:
 
 ```cmd
-janus-cli deploy issuer 
+> janus-cli deploy issuer 
 ``` 
 
-3. Make a request to {controller-address}/provisioning with the device information:
+4. Make a request to localhost:{controller-port}/provisioning with the device information:
 
-> _**Note:**_ You can use {controller-address}/swagger/ to run the requests in a better ui and for seeing more details
+Change the information for matching your device and sensor permissions
+
+> _**Note:**_ You can use localhost:{controller-port}/swagger/ to run the requests in a better ui and for seeing more details
 
 ```http
-POST http://localhost:8081/provision HTTP/1.1
+POST http://localhost:{controller-port}/provision HTTP/1.1
 content-type: application/json
 
     {
@@ -107,6 +130,6 @@ content-type: application/json
     }
 ```
 
-4. Wait for the device provisioning
+5. Wait for the device provisioning
 
-5. See the sensor measurments reaching Dojot
+6. See the sensor measurments reaching Dojot
