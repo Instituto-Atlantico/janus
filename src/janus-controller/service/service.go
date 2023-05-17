@@ -282,7 +282,7 @@ func getAgents(s *Service) {
 }
 
 // DeleteAgent godoc
-// @Summary Delete agent identified by the given IP address
+// @Summary Delete the agent identified by the given IP address
 // @Description Delete the agent corresponding to the input IP address
 // @Tags agents
 // @Accept  json

@@ -48,7 +48,7 @@ const docTemplate = `{
                 "tags": [
                     "agents"
                 ],
-                "summary": "Delete agent identified by the given IP address",
+                "summary": "Delete the agent identified by the given IP address",
                 "parameters": [
                     {
                         "type": "string",
