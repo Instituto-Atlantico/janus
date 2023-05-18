@@ -8,10 +8,12 @@ services:
       [
         "/janus-controller",
         "--server-agent-ip",
-        "agent"
+        "agent",
+        "--port",
+        "${CONTROLLER_PORT}"
       ]
     ports:
-      - "${CONTROLLER_PORT}:8081"
+      - "${CONTROLLER_PORT}:${CONTROLLER_PORT}"
     profiles:
       - issuer
 
