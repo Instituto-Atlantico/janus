@@ -31,6 +31,9 @@ func parseComposeInfo(info ComposeInfo, cmd *exec.Cmd) {
 	cmd.Env = append(cmd.Env, fmt.Sprintf("AGENT_PORT=%s", info.AgentPort))
 
 	//Janus-controller
+	if info.ControllerPort == "" {
+		info.ControllerPort = "0"
+	}
 	cmd.Env = append(cmd.Env, fmt.Sprintf("CONTROLLER_PORT=%s", info.ControllerPort))
 }
 

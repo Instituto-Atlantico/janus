@@ -22,7 +22,4 @@ FROM alpine:3.9
 # Copy only binary
 COPY --from=build_base /tmp/janus/out/janus-controller /janus-controller
 
-# This container exposes port 8081 to the outside world
-EXPOSE 8081
-
 CMD [ "/janus-controller" ]
