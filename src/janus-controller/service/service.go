@@ -292,12 +292,25 @@ func getAgents(s *Service) {
 // @Router /agents/{IpAddress} [delete]
 func deleteAgent(s *Service) {
 	http.HandleFunc("/agents/", func(w http.ResponseWriter, r *http.Request) {
-
 		ip := strings.TrimPrefix(r.URL.Path, "/agents/")
 		if ip == "" {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			fmt.Fprintf(w, "No agent ip was passed")
 			return
+		}
+
+		device := s.Agents[ip]
+		cred, err := agents.GetCredential(device.Client, "cred_def_id", s.CredDefinitionId) //issue new credential only if no previous created
+		if err != nil && err.Error() == "empty" {
+			log.InfoLogger("No credential found to delete")
+		} else if err != nil {
+			log.ErrorLogger("Error looking for credentials for agent", ip)
+		} else {
+			log.InfoLogger("Deleting credential %s for agent %s", s.CredDefinitionId, ip)
+			err = agents.DeleteCredential(device.Client, cred.Referent)
+			if err != nil {
+				log.ErrorLogger("Error Deleting credential of agent %s: %s", ip, err)
+			}
 		}
 
 		delete(s.Agents, ip)

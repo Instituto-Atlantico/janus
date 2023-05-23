@@ -86,6 +86,12 @@ func GetCredential(holder *acapy.Client, attr, value string) (acapy.Credential, 
 	return credentials[0], nil
 }
 
+func DeleteCredential(holder *acapy.Client, referent string) error {
+	err := holder.RemoveCredential(referent)
+
+	return err
+}
+
 // issuer sends a presentation
 func CreateRequestPresentationForSensor(issuer *acapy.Client, credentialDefinition, connectionId, sensorName string) (acapy.PresentationExchangeRecord, error) {
 	requestedPredicates := map[string]acapy.RequestedPredicate{}
