@@ -4,7 +4,10 @@ go 1.20
 
 require github.com/spf13/cobra v1.6.1
 
-require github.com/Instituto-Atlantico/go-acapy-client v0.4.0
+require (
+	github.com/Instituto-Atlantico/go-acapy-client v0.6.0
+	gopkg.in/yaml.v2 v2.4.0
+)
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -27,7 +30,6 @@ require (
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/tools v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
@@ -38,5 +40,4 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggo/http-swagger v1.3.4
-	gopkg.in/yaml.v2 v2.4.0
 )
