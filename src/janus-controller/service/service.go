@@ -314,7 +314,7 @@ func deleteAgent(s *Service) {
 		}
 
 		delete(s.Agents, ip)
-		log.InfoLogger("Device with ip %s was removed", ip)
+		log.InfoLogger(" The Device with ip %s was removed", ip)
 	})
 }
 
