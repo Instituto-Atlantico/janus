@@ -1,5 +1,7 @@
 github.com/Instituto-Atlantico/go-acapy-client v0.4.0 h1:bD7rshIi0q39Ci8w0bLnLadquJT7Q3tLtX2L2xK/p1Q=
 github.com/Instituto-Atlantico/go-acapy-client v0.4.0/go.mod h1:faJXWBL9AHuvGPfj3N/AV65GZW13iu4YFkHHdn+Ghos=
+github.com/Instituto-Atlantico/go-acapy-client v0.6.0 h1:CVRYx8DqgCZuHCRpZP6ZjbvVGctcxqaZnmnCb079Efc=
+github.com/Instituto-Atlantico/go-acapy-client v0.6.0/go.mod h1:faJXWBL9AHuvGPfj3N/AV65GZW13iu4YFkHHdn+Ghos=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/cpuguy83/go-md2man/v2 v2.0.2 h1:p1EgwI/C7NhT0JmVkwCD2ZBK8j4aeHQX2pMHHBfMQ6w=
