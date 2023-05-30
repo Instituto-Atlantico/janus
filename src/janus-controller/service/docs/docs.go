@@ -132,7 +132,7 @@ const docTemplate = `{
                     },
                     "example": [
                         "temperature",
-                        " humidity"
+                        "humidity"
                     ]
                 }
             }
