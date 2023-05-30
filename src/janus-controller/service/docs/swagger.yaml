@@ -21,7 +21,7 @@ definitions:
         description: '["temperature", "humidity"]'
         example:
         - temperature
-        - ' humidity'
+        - humidity
         items:
           type: string
         type: array
