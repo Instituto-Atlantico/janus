@@ -67,7 +67,20 @@ For more details about usage, such as the deployment of Sensor Collectors on the
 
 ```cmd
 janus-cli deploy issuer 
-``` 
+```
+
+If you are running on WSL you need to pass the Network ip of your windows to the command.
+    
+``` powershell
+ipconfig
+```
+
+Pick the **IPv4** of the wifi network adapter and pass it to the flag device-ip
+
+```cmd
+janus-cli deploy issuer --device-ip 192.168.0.1
+```
+
 
 ### Deploy a holder agent on IoT device
 
